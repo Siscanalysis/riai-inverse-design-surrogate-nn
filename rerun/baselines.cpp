@@ -18,6 +18,7 @@
 #include "opennn/network_differential.h"
 #include "opennn/response_optimization.h"
 #include "opennn/response_constraints.h"
+#include "opennn/model_expression.h"
 
 #include <algorithm>
 #include <chrono>
@@ -76,6 +77,7 @@ static Index out_index(const vector<Variable>& outs, const string& n) {
 struct Metrics {
     string method;
     long budget = 0;
+    long true_evals = 0;        // actual surrogate forward passes (incl. repair)
     long feasible = 0;
     double feas_rate = 0;
     double simplex_resid = 0;   // mean |sum(x)-1| over returned inputs (HEA)
@@ -269,6 +271,10 @@ int main(int argc, char** argv)
     cout << unitbuf << fixed << setprecision(4);
     cout << "=== BASELINES (" << C.name << ") ===\nLoading " << C.model << "\n";
     NeuralNetwork net; net.load(C.model);
+    // export the surrogate as a standalone Python function for the pymoo baselines
+    try { ModelExpression(&net).save("models/" + C.name + "_surrogate.py",
+                                     ModelExpression::ProgrammingLanguage::Python); }
+    catch (const exception& e) { cout << "  [python export failed: " << e.what() << "]\n"; }
     const auto in_vars = net.get_input_variables();
     const auto out_vars = net.get_output_variables();
     const Index n_in = (Index)in_vars.size(), n_out = (Index)out_vars.size();
@@ -316,21 +322,21 @@ int main(int argc, char** argv)
     const long BUDGET = 48000;   // 8 iters x 6000 evals; also the one-shot budget (equal total)
     vector<Metrics> results;
 
-    auto record = [&](const string& m, const MatrixR& Xfeas, long budget, double secs, double sresid) {
-        Metrics M; M.method = m; M.budget = budget; M.feasible = Xfeas.rows();
-        M.feas_rate = budget ? (double)Xfeas.rows()/budget : 0;
+    auto record = [&](const string& m, const MatrixR& Xfeas, long budget, long tevals, double secs, double sresid) {
+        Metrics M; M.method = m; M.budget = budget; M.true_evals = tevals; M.feasible = Xfeas.rows();
+        M.feas_rate = tevals ? (double)Xfeas.rows()/tevals : 0;   // rate over TRUE evals (fair)
         M.simplex_resid = sresid;
         M.mean_fill = mean_fill_of(Xfeas, domain, n_in);
         robustness_stats(diff, Xfeas, n_in, n_out, ok, span, M.mean_S, M.min_S);
         M.seconds = secs;
         results.push_back(M);
         cout << "  " << left << setw(16) << m << right
-             << "  feasible=" << setw(5) << M.feasible
+             << "  feas=" << setw(5) << M.feasible
+             << "  trueEvals=" << setw(7) << M.true_evals
              << "  rate=" << setw(8) << M.feas_rate
              << "  fill%=" << setw(7) << M.mean_fill
-             << "  meanS=" << setw(9) << M.mean_S
              << "  minS=" << setw(9) << M.min_S
-             << "  simplex=" << setw(8) << M.simplex_resid
+             << "  simplex=" << setw(7) << M.simplex_resid
              << "  " << M.seconds << "s\n";
     };
 
@@ -341,7 +347,7 @@ int main(int argc, char** argv)
         const MatrixR Y = opt.calculate_outputs(X);
         const MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("reject_norepair", Xf, BUDGET, secs, simplex_resid(X));
+        record("reject_norepair", Xf, BUDGET, BUDGET, secs, simplex_resid(X));
     }
 
     // ---- 2. rejection + repair (1 iteration) ----
@@ -365,7 +371,7 @@ int main(int argc, char** argv)
         MatrixR Y = (M.rows() ? M.rightCols(n_out).eval() : MatrixR(0, n_out));
         MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("reject_repair", Xf, BUDGET, secs, simplex_resid(X));
+        record("reject_repair", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X));
     }
 
     // ---- 3. ours (iterative contraction), same total budget ----
@@ -390,7 +396,7 @@ int main(int argc, char** argv)
         MatrixR Y = (M.rows() ? M.rightCols(n_out).eval() : MatrixR(0, n_out));
         MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("ours_iterative", Xf, BUDGET, secs, simplex_resid(X));
+        record("ours_iterative", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X));
     }
 
     // ---- 4. NSGA-II with the SAME repair ----
@@ -408,14 +414,56 @@ int main(int argc, char** argv)
         double sres = 0;
         if (X.rows()) { MatrixR Y = opt.calculate_outputs(X); Xf = refilter(X, Y); sres = simplex_resid(X); }
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("nsga2_repair", Xf, ev ? ev : BUDGET, secs, sres);
+        record("nsga2_repair", Xf, ev ? ev : BUDGET, ev ? ev : BUDGET, secs, sres);
+    }
+
+    // ---- Mixed-sense optimization (CNC only): FIX Ra + MINIMIZE F ----
+    // The pure fixed-target above has nothing to optimize, so an optimizer cannot beat a
+    // sampler. Here there IS a secondary objective (min F), and ours (contraction toward the
+    // objective) should reach a lower best-feasible F than rejection (uniform sampling) at
+    // equal/less true budget.
+    if (!C.simplex) {
+        const Index ff = out_index(out_vars, "F");
+        if (ff >= 0) {
+            auto best_feasible_F = [&](const MatrixR& X) {
+                if (!X.rows()) return 1e30;
+                const MatrixR Y = opt.calculate_outputs(X);
+                double m = 1e30;
+                for (Index r = 0; r < X.rows(); ++r)
+                    if (fabs(Y(r, ok) - target) <= band) m = min(m, (double)Y(r, ff));
+                return m;
+            };
+            const MatrixR Xr = opt.calculate_random_inputs(domain, BUDGET);
+            const double f_reject = best_feasible_F(Xr);
+
+            opt.clear_objectives(); opt.clear_formula_constraints();
+            opt.set_objective(C.target_output, ResponseOptimization::Sense::Fixed, target);
+            opt.set_objective("F", ResponseOptimization::Sense::Minimize);
+            opt.set_relative_tolerance(rel_tol); opt.set_min_feasible_ratio(1e-4f);
+            opt.set_iterations(8); opt.set_evaluations_number((int)(BUDGET/8));
+            opt.set_max_total_evaluations((Index)(BUDGET*8));
+            MatrixR Mo;
+            try { Mo = opt.perform_response_optimization(); }
+            catch (const exception& e) { cout << "  [ours mixed-sense failed: " << e.what() << "]\n"; }
+            const long ev_ours = (long)opt.get_evaluations_used();
+            double f_ours = 1e30;
+            for (Index r = 0; r < Mo.rows(); ++r)
+                if (fabs(Mo(r, n_in + ok) - target) <= band) f_ours = min(f_ours, (double)Mo(r, n_in + ff));
+
+            cout << "\n-- Mixed-sense (fix Ra + minimize F): best feasible F (lower=better) --\n";
+            cout << "   rejection (sampler): F=" << f_reject << "  (evals " << BUDGET << ")\n";
+            cout << "   ours (optimizer):    F=" << f_ours   << "  (trueEvals " << ev_ours << ")\n";
+            ofstream mf("out/baselines_" + C.name + "_mixedsense.csv");
+            mf << "method,best_F,evals\nrejection," << f_reject << "," << BUDGET
+               << "\nours," << f_ours << "," << ev_ours << "\n";
+        }
     }
 
     // ---- dump ----
     ofstream csv("out/baselines_" + C.name + ".csv");
-    csv << "method,budget,feasible,feas_rate,simplex_resid,mean_fill_pct,mean_S,min_S,seconds\n";
+    csv << "method,budget,true_evals,feasible,feas_rate,simplex_resid,mean_fill_pct,mean_S,min_S,seconds\n";
     for (const auto& M : results)
-        csv << M.method << "," << M.budget << "," << M.feasible << "," << M.feas_rate << ","
+        csv << M.method << "," << M.budget << "," << M.true_evals << "," << M.feasible << "," << M.feas_rate << ","
             << M.simplex_resid << "," << M.mean_fill << "," << M.mean_S << "," << M.min_S << ","
             << M.seconds << "\n";
     cout << "wrote out/baselines_" << C.name << ".csv\n";

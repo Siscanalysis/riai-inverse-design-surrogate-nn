@@ -61,7 +61,9 @@ cd rerun
 ./build/Release/case_a_cnc.exe        # writes out/cnc_*.csv
 ./build/Release/case_b_hea.exe        # writes out/hea_manifold.csv
 ./build/Release/baselines.exe cnc     # honest baselines (reject +/- repair, ours, NSGA-II)
-./build/Release/baselines.exe hea
+./build/Release/baselines.exe hea     # also exports models/<case>_surrogate.py for pymoo
+python pymoo_baselines.py cnc         # GA/DE/PSO/CMA-ES, same repair + budget (pymoo 0.6)
+python pymoo_baselines.py hea
 ```
 
 ## Figures

@@ -320,11 +320,45 @@ robustez pero cubre poco; nuestro metodo queda en medio y aporta ademas la selec
 \label{fig:base_trade}
 \end{figure}
 
+\paragraph{Optimizacion de sentido mixto frente a metaheuristicas} La cobertura pura
+no distingue a un optimizador de un muestreador porque, con un objetivo solo fijado,
+todas las soluciones factibles son equivalentes. La diferencia aparece al anadir un
+objetivo secundario. En la tarea de sentido mixto de la CNC (fijar $R_a$ y
+\emph{minimizar} $F$) comparamos, con el mismo sustituto exportado y el mismo
+presupuesto, contra metaheuristicas de \texttt{pymoo} (GA, DE, PSO, CMA-ES) dotadas de
+la misma reparacion (Tabla~\ref{tab:mixed}). Nuestro metodo alcanza la menor fuerza
+factible empatando con los mejores (DE, PSO) y superando a GA y a CMA-ES, y lo hace con
+\emph{menos} evaluaciones reales ($3.6\times10^4$ frente a $4.8\times10^4$; el resto de
+metodos agotan el presupuesto). En la HEA, con la misma reparacion GA, DE y PSO
+satisfacen el simplex de forma exacta y alcanzan la banda de dureza, mientras que
+CMA-ES (penalizacion por muerte) fracasa sobre la igualdad de medida nula, en linea con
+lo observado en la literatura: la reparacion es el habilitador, no un detalle.
+
+\begin{table}[t]
+\centering
+\caption{Tarea de sentido mixto (CNC: fijar $R_a$, minimizar $F$). Mejor fuerza factible
+$F$ (menor es mejor) y evaluaciones reales del sustituto. Misma reparacion y presupuesto.}
+\label{tab:mixed}
+\begin{tabular}{lcc}
+\toprule
+Metodo & mejor $F$ [N] & evals \\
+\midrule
+Rechazo (muestreo)  & 88.5 & $4.8\times10^4$ \\
+GA                  & 87.5 & $4.8\times10^4$ \\
+CMA-ES              & infactible & $4.8\times10^4$ \\
+DE                  & 78.0 & $4.8\times10^4$ \\
+PSO                 & 78.0 & $4.8\times10^4$ \\
+Nuestro (contraccion) & \textbf{77.9} & $\mathbf{3.6\times10^4}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
-variedad de un objetivo unico, y NSGA-II con la misma reparacion es fuerte para el
-optimo robusto aislado; el valor de nuestro planteamiento como \emph{problema
-inverso} es unificar la recuperacion de la variedad, los sentidos mixtos y la
-seleccion por robustez sobre modelos sustitutos reparados, reportando con
+variedad de un objetivo unico, NSGA-II con la misma reparacion es fuerte para el
+optimo robusto aislado, y en la optimizacion de sentido mixto nuestro metodo iguala o
+supera a las metaheuristicas con menos evaluaciones; el valor del planteamiento como
+\emph{problema inverso} es unificar la recuperacion de la variedad, los sentidos mixtos
+y la seleccion por robustez sobre modelos sustitutos reparados, reportando con
 transparencia donde cada linea base es preferible.
 
 \section{Conclusiones}

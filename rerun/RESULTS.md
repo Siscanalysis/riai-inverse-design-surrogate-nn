@@ -58,6 +58,30 @@ Honest findings (none is "we dominate"):
 NSGA-II: real-coded, SBX + polynomial mutation, fast-non-dominated-sort + crowding,
 bi-objective (closeness, S), same repair (closed-form simplex projection) each generation.
 
+### Fairness (true evals via get_evaluations_used)  [answers "same #evals?"]
+All methods use <= 48000 TRUE surrogate forwards (repair evals are counted within the
+budget): reject_norepair 48000, reject_repair 48000, NSGA-II 48000, ours 36000 (ours
+converges early on the relative tolerance -> uses FEWER, not more).
+
+### Mixed-sense optimization (CNC: fix Ra + minimize F)  -> out/baselines_cnc_mixedsense.csv, out/pymoo_cnc.csv
+The pure fixed-target is the WORST case for ours (nothing to optimize). With a secondary
+objective (min F), ours (an optimizer) beats a sampler and is competitive with the best
+metaheuristics, at fewer evals:
+| method | best feasible F [N] | evals |
+| rejection (sampler) | 88.5 | 48000 |
+| GA        | 87.5 | 48000 |
+| CMA-ES    | infeasible (missed Ra band) | 48000 |
+| DE        | 78.0 | 48000 |
+| PSO       | 78.0 | 48000 |
+| ours      | **77.9** | **36000** |
+
+### pymoo panel with the SAME repair (GA/DE/PSO/CMA-ES)  -> out/pymoo_{cnc,hea}.csv
+- HEA simplex: with the same repair, GA/DE/PSO satisfy sum=1 EXACTLY and hit the HV band;
+  CMA-ES (death penalty) fails on the measure-zero equality (bestGap 233). Repair is the
+  enabler for all; CMA-ES fails even with it.
+- Surrogates exported to Python via OpenNN ModelExpression (models/*_surrogate.py);
+  pymoo 0.6.1.6. Run: `python pymoo_baselines.py cnc|hea`.
+
 ## Build note (refactor-immune)
 The upstream OpenNN refactor moved HEAD (5598487e3 -> 454232b74) and rebuilt/reorganized
 the lib+headers mid-work. The companion is now SELF-CONTAINED: rerun/_vendor/ holds the
