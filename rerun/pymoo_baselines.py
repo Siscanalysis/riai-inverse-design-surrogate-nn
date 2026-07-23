@@ -94,15 +94,20 @@ def run(case):
         "GA":  GA(pop_size=POP, repair=repair, eliminate_duplicates=True),
         "DE":  DE(pop_size=POP),
         "PSO": PSO(pop_size=POP, repair=repair),
-        "CMA-ES": CMAES(x0=(lo+up)/2, sigma=0.25, restarts=0, maxfevals=BUDGET),
+        # restarts (IPOP) so CMA-ES actually spends the budget instead of collapsing early
+        "CMA-ES": CMAES(x0=(lo+up)/2, sigma=0.25, restarts=12, restart_from_best=True,
+                        maxfevals=BUDGET, tolx=1e-12, tolfun=1e-12),
     }
 
     rows = []
     for name, alg in algos.items():
         try:
-            res = minimize(P(), alg, get_termination("n_gen", NGEN), seed=1, verbose=False)
+            # n_evals termination => EXACTLY the same surrogate-eval budget for every
+            # algorithm, regardless of its internal population size (CMA-ES uses lambda!=POP).
+            res = minimize(P(), alg, get_termination("n_evals", BUDGET), seed=1, verbose=False)
         except Exception as e:
-            rows.append((name, None, None, None, f"error:{e}")); print(f"  {name:8s} error: {e}"); continue
+            rows.append((name, None, None, None, None, f"error:{e}")); print(f"  {name:8s} error: {e}"); continue
+        n_eval = int(res.algorithm.evaluator.n_eval)
         # gather all evaluated solutions, repair, filter to band, report best
         X = res.pop.get("X") if res.pop is not None else res.X.reshape(1, -1)
         Xr = project_simplex_box(X, lo, up) if simplex else np.clip(X, lo, up)
@@ -112,12 +117,12 @@ def run(case):
         best_F = float(Y[feas, ff].min()) if (case == "cnc" and nfeas) else None
         best_gap = float(np.abs(Y[:, ok] - target).min())
         simplex_resid = float(np.abs(Xr.sum(1) - 1).mean()) if simplex else 0.0
-        rows.append((name, nfeas, best_F, best_gap, simplex_resid))
+        rows.append((name, n_eval, nfeas, best_F, best_gap, simplex_resid))
         extra = f"bestF={best_F:.2f}" if best_F is not None else f"bestGap={best_gap:.3g}"
-        print(f"  {name:8s} feas_in_pop={nfeas:3d}/{len(Xr)}  {extra}  simplexResid={simplex_resid:.2g}")
+        print(f"  {name:8s} evals={n_eval:6d}  feas_in_pop={nfeas:3d}/{len(Xr)}  {extra}  simplexResid={simplex_resid:.2g}")
 
     with open(os.path.join(HERE, "out", f"pymoo_{case}.csv"), "w", newline="") as fp:
-        w = csv.writer(fp); w.writerow(["algo", "feas_in_pop", "best_F", "best_gap", "simplex_resid"])
+        w = csv.writer(fp); w.writerow(["algo", "n_eval", "feas_in_pop", "best_F", "best_gap", "simplex_resid"])
         for r in rows: w.writerow(r)
     print(f"  target={target:.4g} band=+/-{band:.4g}  budget={BUDGET}  -> out/pymoo_{case}.csv")
 

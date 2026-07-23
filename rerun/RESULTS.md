@@ -68,17 +68,20 @@ The pure fixed-target is the WORST case for ours (nothing to optimize). With a s
 objective (min F), ours (an optimizer) beats a sampler and ties the best metaheuristics,
 at fewer evals -- and the gap to sampling GROWS as the budget shrinks:
 | method | best feasible F [N] @24k | @48k |
-| rejection (sampler) | 97.6 | 88.5 |   <- degrades most at low budget
-| GA        | 87.5 | 87.5 |
-| CMA-ES    | infeasible (missed Ra band) | infeasible |
+| ours      | **78.0 @18k evals** | 77.9 @36k |   <- barely changes (converges)
 | DE        | 78.0 | 78.0 |
 | PSO       | 78.0 | 78.0 |
-| ours      | **78.0 @18k evals** | 77.9 @36k |   <- barely changes (converges)
+| GA        | 87.5 | 87.5 |
+| rejection (sampler) | 97.6 | 88.5 |   <- degrades most at low budget
+| CMA-ES    | 114.8 | -- |   <- feasible (with repair+restarts) but worst objective
 
 ### pymoo panel with the SAME repair (GA/DE/PSO/CMA-ES)  -> out/pymoo_{cnc,hea}.csv
-- HEA simplex: with the same repair, GA/DE/PSO satisfy sum=1 EXACTLY and hit the HV band;
-  CMA-ES (death penalty) fails on the measure-zero equality (bestGap 233). Repair is the
-  enabler for all; CMA-ES fails even with it.
+- BUDGET FAIRNESS: n_evals termination gives every algo exactly 24000 evals (recorded in
+  the n_eval column). CMA-ES uses IPOP restarts (restarts=12) to spend the budget instead
+  of self-terminating at ~66 evals; without restarts it collapses early.
+- HEA simplex: with the same repair, ALL FOUR (GA/DE/PSO/CMA-ES) satisfy sum=1 EXACTLY
+  and hit the HV band. Repair is the enabler; without it (reject_norepair) the simplex is
+  infeasible (0%). CMA-ES is feasible but the weakest optimizer on CNC min-F (114.8).
 - Surrogates exported to Python via OpenNN ModelExpression (models/*_surrogate.py);
   pymoo 0.6.1.6. Run: `python pymoo_baselines.py cnc|hea`.
 

@@ -50,7 +50,9 @@ las restricciones afines, y se selecciona de ella el diseno mas robusto. Una
 comparacion honesta, en la que damos la misma reparacion a las lineas base,
 muestra que la reparacion es el factor decisivo de factibilidad (sin ella la
 restriccion de simplex es inviable por muestreo) y que la aportacion propia del
-metodo son los objetivos de sentido mixto y la seleccion por robustez.
+metodo son los objetivos de sentido mixto y la seleccion por robustez; en la
+optimizacion de sentido mixto nuestro metodo iguala a las mejores metaheuristicas
+con menos evaluaciones.
 \end{abstract}
 
 \begin{keyword}
@@ -199,10 +201,10 @@ fuerza de corte $F$.}
 \end{figure}
 
 \paragraph{Seleccion y multiobjetivo de igualdad} El criterio de la
-Seccion~\ref{sec:robustez} devuelve recetas distintas segun $\alpha$: el diseno
-mas robusto reduce a la mitad la sensibilidad respecto de una eleccion central.
-Al anadir la minimizacion explicita de $F$ bajo la rugosidad fija, el solver
-alcanza una receta de fuerza minima ($F\approx78$~N). Finalmente, fijando
+Seccion~\ref{sec:robustez} devuelve recetas distintas segun $\alpha$ (mas central
+frente a mas robusta), que difieren claramente en fuerza y productividad sobre la
+misma especificacion de rugosidad. Al anadir la minimizacion explicita de $F$ bajo
+la rugosidad fija, el solver alcanza una receta de fuerza minima ($F\approx78$~N). Finalmente, fijando
 simultaneamente $R_a$ y $F$ se recupera la interseccion de ambas variedades
 (5100 soluciones), que ilustra la capacidad multiobjetivo de igualdad.
 
@@ -261,6 +263,17 @@ congelado, las mismas restricciones y el mismo presupuesto de evaluaciones. La
 Tabla~\ref{tab:base} resume los resultados y las Figuras~\ref{fig:base_feas}
 y~\ref{fig:base_trade} los ilustran.
 
+\paragraph{Protocolo} El presupuesto es de $2.4\times10^4$ evaluaciones del sustituto
+para todos los metodos, contado con el numero real de propagaciones directas (incluidas
+las de la reparacion). Nuestro metodo usa $8$ iteraciones de $3\times10^3$ muestras
+(tolerancia relativa $10^{-2}$) y converge antes, gastando $1.8\times10^4$ evaluaciones.
+NSGA-II es de codificacion real con poblacion $100$, cruce SBX y mutacion polinomica,
+bi-objetivo (cercania a la banda y sensibilidad $S$). Las metaheuristicas de
+\texttt{pymoo} (GA, DE, PSO con poblacion $100$; CMA-ES con reinicios IPOP) usan una
+terminacion por numero de evaluaciones para igualar exactamente el presupuesto. Todas
+reciben el mismo sustituto congelado, las mismas restricciones y el mismo operador de
+reparacion; el criterio de factibilidad (banda de igualdad mas simplex) es identico.
+
 \begin{table}[t]
 \centering
 \caption{Comparacion con la misma reparacion, mismo presupuesto de evaluaciones
@@ -303,7 +316,7 @@ del mejor punto (Tabla~\ref{tab:base}, Figura~\ref{fig:base_trade}): el rechazo
 reparado cubre mejor la variedad (relleno $99.97\%$, mayor factibilidad), mientras
 que NSGA-II, que optimiza explicitamente la sensibilidad, encuentra el diseno mas
 robusto (menor $S$: $0.039$ en CNC, $115$ en HEA) pero cubre mal la variedad
-(relleno $7\%$ y $4\%$). Nuestra contraccion iterativa queda en un punto intermedio.
+(relleno $7\%$ y $3.5\%$). Nuestra contraccion iterativa queda en un punto intermedio.
 Tercera, el valor del planteamiento no esta en ganar un eje concreto sino en ofrecer,
 en una unica pasada sin derivadas, la \emph{variedad completa} de un objetivo fijado,
 el manejo de \emph{sentidos mixtos} (minimizar $F$ y maximizar la MRR sobre la banda,
@@ -327,16 +340,16 @@ objetivo secundario. En la tarea de sentido mixto de la CNC (fijar $R_a$ y
 \emph{minimizar} $F$) comparamos, con el mismo sustituto exportado y el mismo
 presupuesto, contra metaheuristicas de \texttt{pymoo} (GA, DE, PSO, CMA-ES) dotadas de
 la misma reparacion (Tabla~\ref{tab:mixed}). Nuestro metodo alcanza la menor fuerza
-factible empatando con los mejores (DE, PSO) y superando a GA y a CMA-ES, y lo hace con
-\emph{menos} evaluaciones reales ($1.8\times10^4$ frente a $2.4\times10^4$; el resto de
-metodos agotan el presupuesto). Ademas, la ventaja frente al muestreo \emph{crece} al
-reducir el presupuesto: al pasar de $4.8$ a $2.4\times10^4$ evaluaciones la mejor fuerza
-del rechazo empeora de $88.5$ a $97.6$~N, mientras que la nuestra apenas cambia
-($77.9$ a $78.0$~N), porque converge en vez de muestrear. En la HEA, con la misma
-reparacion GA, DE y PSO
-satisfacen el simplex de forma exacta y alcanzan la banda de dureza, mientras que
-CMA-ES (penalizacion por muerte) fracasa sobre la igualdad de medida nula, en linea con
-lo observado en la literatura: la reparacion es el habilitador, no un detalle.
+factible, empatando con los mejores (DE, PSO) y superando a GA, al muestreo y a CMA-ES,
+y lo hace con \emph{menos} evaluaciones reales ($1.8\times10^4$ frente a $2.4\times10^4$;
+el resto de metodos agotan el presupuesto). Ademas, la ventaja frente al muestreo
+\emph{crece} al reducir el presupuesto: al pasar de $4.8$ a $2.4\times10^4$ evaluaciones
+la mejor fuerza del rechazo empeora de $88.5$ a $97.6$~N, mientras que la nuestra apenas
+cambia ($77.9$ a $78.0$~N), porque converge en vez de muestrear. En la HEA, con la misma
+reparacion las cuatro metaheuristicas (GA, DE, PSO y CMA-ES) satisfacen el simplex de
+forma exacta y alcanzan la banda de dureza; sin reparacion, en cambio, la igualdad de
+medida nula es inviable por muestreo (Tabla~\ref{tab:base}). La reparacion es el
+habilitador, no un detalle.
 
 \begin{table}[t]
 \centering
@@ -347,12 +360,12 @@ $F$ (menor es mejor) y evaluaciones reales del sustituto. Misma reparacion y pre
 \toprule
 Metodo & mejor $F$ [N] & evals \\
 \midrule
-Rechazo (muestreo)  & 97.6 & $2.4\times10^4$ \\
-GA                  & 87.5 & $2.4\times10^4$ \\
-CMA-ES              & infactible & $2.4\times10^4$ \\
+Nuestro (contraccion) & \textbf{78.0} & $\mathbf{1.8\times10^4}$ \\
 DE                  & 78.0 & $2.4\times10^4$ \\
 PSO                 & 78.0 & $2.4\times10^4$ \\
-Nuestro (contraccion) & \textbf{78.0} & $\mathbf{1.8\times10^4}$ \\
+GA                  & 87.5 & $2.4\times10^4$ \\
+Rechazo (muestreo)  & 97.6 & $2.4\times10^4$ \\
+CMA-ES              & 114.8 & $2.4\times10^4$ \\
 \bottomrule
 \end{tabular}
 \end{table}
