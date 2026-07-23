@@ -319,7 +319,11 @@ int main(int argc, char** argv)
         return Xk;
     };
 
-    const long BUDGET = 24000;   // 8 iters x 3000 evals; also the one-shot budget (equal total)
+    // Shared HARD budget: every method gets EXACTLY this many true surrogate forwards.
+    // ours uses iterations=6 so it CANNOT early-stop before the last iteration
+    // (min_iterations=4 in the library => earliest stop is i=5, which is the final
+    // iteration when max_iterations=6) => ours spends the whole budget, same as the rest.
+    const long BUDGET = 12000;   // 6 iters x 2000 evals; also the one-shot budget (equal total)
     vector<Metrics> results;
 
     auto record = [&](const string& m, const MatrixR& Xfeas, long budget, long tevals, double secs, double sresid) {
@@ -385,7 +389,7 @@ int main(int argc, char** argv)
         opt.set_objective(C.target_output, ResponseOptimization::Sense::Fixed, target);
         opt.set_relative_tolerance(rel_tol);
         opt.set_min_feasible_ratio(1e-4f);
-        const int iters = 8;
+        const int iters = 6;                 // spends the FULL budget (see BUDGET note)
         opt.set_iterations(iters);
         opt.set_evaluations_number((int)(BUDGET / iters));
         opt.set_max_total_evaluations((Index)(BUDGET * 8));
@@ -440,7 +444,7 @@ int main(int argc, char** argv)
             opt.set_objective(C.target_output, ResponseOptimization::Sense::Fixed, target);
             opt.set_objective("F", ResponseOptimization::Sense::Minimize);
             opt.set_relative_tolerance(rel_tol); opt.set_min_feasible_ratio(1e-4f);
-            opt.set_iterations(8); opt.set_evaluations_number((int)(BUDGET/8));
+            opt.set_iterations(6); opt.set_evaluations_number((int)(BUDGET/6));
             opt.set_max_total_evaluations((Index)(BUDGET*8));
             MatrixR Mo;
             try { Mo = opt.perform_response_optimization(); }

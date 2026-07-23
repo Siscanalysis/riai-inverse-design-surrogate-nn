@@ -9,14 +9,15 @@ SAME budget as the C++ methods. Two tasks:
         Repair = min-norm projection onto {sum(x)=1} cap box (same operator as ours).
         Metric: feasibility %, best |HV - c|.
 
-Budget = 48000 surrogate evaluations (pop 100 x ~480 gens). Every algorithm evaluates
-REPAIRED inputs, so all receive the same repair. Run:  python pymoo_baselines.py cnc|hea
+Budget = 12000 surrogate evaluations, enforced per-algorithm via an n_evals termination
+(so CMA-ES's lambda != POP does not under/over-spend). Every algorithm evaluates REPAIRED
+inputs, so all receive the same repair. Run:  python pymoo_baselines.py cnc|hea
 """
 import sys, os, csv, importlib.util
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BUDGET, POP = 24000, 100
+BUDGET, POP = 12000, 100
 NGEN = BUDGET // POP
 
 def load_surrogate(case):

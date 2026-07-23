@@ -35,23 +35,27 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
   TODO if wanted: add x_i ≥ 0 formula constraints to clamp.
 
 ## Baselines (honest: SAME repair given to ALL baselines)  -> out/baselines_{cnc,hea}.csv
-Equal eval budget (24000; halved to expose eval-efficiency), identical feasibility test
+Equal HARD eval budget = 12000 for EVERY method (ours included), identical feasibility test
 (output band + simplex). 4 methods. feas% = feasible / TRUE evals.
+KEY FAIRNESS FIX: ours now uses iterations=6 (not 8). Because min_iterations=4 in the lib,
+the earliest early-stop is i=5, which IS the last iteration when max_iterations=6 -> ours
+CANNOT stop before spending the whole budget => uses exactly 12000, same as everyone.
+(Previously iters=8 -> stopped at i=5 -> only 18000; that "fewer evals" optics is now gone.)
 
 | method | repair | CNC feas% | CNC fill% | CNC minS | HEA feas% | HEA simplex | HEA minS |
 |---|---|---|---|---|---|---|---|
-| reject_norepair | no  | 7.9%  | 99.9%  | 0.055 | 0%   | 0.98  | -   |
-| reject_repair   | yes | 22.9% | 99.97% | 0.082 | 3.1% | 0.000 | 311 |
-| ours_iterative  | yes | 5.9%  | 90.4%  | 0.141 | 6 pts| 0.000 | 770 |
-| nsga2_repair    | yes | 0.4%  | 7.1%   | 0.039 | 73pts| 0.000 | 115 |
+| reject_norepair | no  | 7.6%  | 99.8%  | 0.055 | 0%    | 0.98  | -    |
+| reject_repair   | yes | 23.1% | 99.96% | 0.094 | 358pts| 6e-6  | 259  |
+| ours_iterative  | yes | 4.2%  | 78.6%  | 0.278 | 4 pts | 8e-8  | 1400 |
+| nsga2_repair    | yes | 0.8%  | 6.5%   | 0.040 | 11pts | 2e-9  | 151  |
 
 Honest findings (none is "we dominate"):
 1. Repair is the decisive enabler: without it the HEA simplex is unsolvable by sampling
    (0% feasible, residual 0.99); with the SAME repair it is satisfied EXACTLY (0.000) by all.
    The repair operator is shared machinery from the companion (new_IDC), NOT novel here.
-2. Coverage <-> robustness trade-off: reject_repair covers best (fill 99.98%, highest feas);
-   NSGA-II (optimizes S) finds the MOST ROBUST design (minS 0.022 CNC / 111 HEA) but covers
-   worst (fill 32%/4%); ours (contraction) is in between.
+2. Coverage <-> robustness trade-off: reject_repair covers best (fill ~99.96% CNC/98.9% HEA,
+   highest feas); NSGA-II (optimizes S) finds the MOST ROBUST design (minS 0.040 CNC / 151 HEA)
+   but covers worst (fill 6.5% CNC / 24% HEA); ours (contraction) is intermediate (79% CNC).
 3. Our value = the UNIFIED inverse-problem framework: recover the whole fixed-target manifold
    + mixed senses (min F / max MRR along the band) + robustness selection, in one derivative-
    free pass. Baselines each solve only one axis (coverage OR a robust optimum).
@@ -60,20 +64,23 @@ NSGA-II: real-coded, SBX + polynomial mutation, fast-non-dominated-sort + crowdi
 bi-objective (closeness, S), same repair (closed-form simplex projection) each generation.
 
 ### Fairness (true evals via get_evaluations_used)  [answers "same #evals?"]
-All methods use <= 24000 TRUE surrogate forwards (repair evals counted within budget):
-reject 24000, NSGA-II 24000, ours 18000 (converges early on the tolerance -> FEWER, not more).
+ALL methods use EXACTLY 12000 TRUE surrogate forwards (repair evals counted within budget):
+reject 12000, NSGA-II 12000, ours 12000 (iters=6 spends the whole budget). Literal parity.
 
 ### Mixed-sense optimization (CNC: fix Ra + minimize F)  -> out/baselines_cnc_mixedsense.csv, out/pymoo_cnc.csv
 The pure fixed-target is the WORST case for ours (nothing to optimize). With a secondary
-objective (min F), ours (an optimizer) beats a sampler and ties the best metaheuristics,
-at fewer evals -- and the gap to sampling GROWS as the budget shrinks:
-| method | best feasible F [N] @24k | @48k |
-| ours      | **78.0 @18k evals** | 77.9 @36k |   <- barely changes (converges)
-| DE        | 78.0 | 78.0 |
-| PSO       | 78.0 | 78.0 |
-| GA        | 87.5 | 87.5 |
-| rejection (sampler) | 97.6 | 88.5 |   <- degrades most at low budget
-| CMA-ES    | 114.8 | -- |   <- feasible (with repair+restarts) but worst objective
+objective (min F), ours ties the best general-purpose optimizers and beats GA, sampling and
+CMA-ES -- all at the SAME 12000-eval budget (no "fewer evals" caveat anymore):
+| method | best feasible F [N] @12000 evals |
+| ours      | **78.0** |  <- ties DE/PSO (top group)
+| DE        | 78.0 |
+| PSO       | 78.0 |
+| rejection (sampler) | 86.6 |
+| GA        | 87.5 |
+| CMA-ES    | 114.8 |  <- feasible (with repair+restarts) but worst objective
+NOTE: dropped the earlier "gap grows as budget shrinks" claim -- rejection's best-F is
+noisy across budgets (86.6 @12k vs 97.6 @24k was sampling luck, not a trend). Stay humble:
+ours is in the top group and clearly beats GA/sampler/CMA-ES; it does NOT beat DE/PSO.
 
 ### pymoo panel with the SAME repair (GA/DE/PSO/CMA-ES)  -> out/pymoo_{cnc,hea}.csv
 - BUDGET FAIRNESS: n_evals termination gives every algo exactly 24000 evals (recorded in
@@ -92,6 +99,6 @@ the lib+headers mid-work. The companion is now SELF-CONTAINED: rerun/_vendor/ ho
 (both gitignored). CMake points only at _vendor; nothing depends on the live source.
 
 ## Manuscript
-paper/manuscript.pdf (10 pages) - includes the honest baselines section (Sec 5) with
-Table + fig_baselines_feasibility.pdf + fig_baselines_robustness.pdf.
-Draft for review BEFORE sending the title email to jlcalvo@udc.es.
+paper/manuscript.pdf (12 pages) - includes the honest baselines section (Sec 5) with
+tab:base + tab:mixed + fig_baselines_feasibility.pdf + fig_baselines_tradeoff.pdf, all at
+the 12000-eval budget. Draft for review BEFORE sending the title email to jlcalvo@udc.es.
