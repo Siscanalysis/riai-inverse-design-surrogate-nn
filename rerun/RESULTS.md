@@ -34,6 +34,31 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
 - Minor: one V fraction dips to −0.006 (box lower bound slightly <0); physically ≈0.
   TODO if wanted: add x_i ≥ 0 formula constraints to clamp.
 
-## Pending
-- Baselines: rejection sampling + NSGA-II (feasibility %, diversity, robustness, evals) for both cases.
-- Manuscript (gated on title approval by jlcalvo@udc.es).
+## Baselines (honest: SAME repair given to the baselines)  -> out/baselines_{cnc,hea}.csv
+Equal-ish eval budget (48000), identical feasibility test (output band + simplex).
+
+| method | repair | CNC feas% | CNC meanS/minS | HEA feas% | HEA simplex resid | HEA meanS/minS |
+|---|---|---|---|---|---|---|
+| reject_norepair | no | 7.8% | 0.62 / 0.055 | 0% | 0.99 | - |
+| reject_repair   | yes | 22.9% | 0.75 / 0.077 | 3.0% | 0.000 | 1092 / 319 |
+| ours_iterative  | yes | 5.7% | 0.44 / 0.185 | ~6 pts | 0.000 | 771 / 477 |
+
+Honest findings:
+1. Repair is the decisive enabler: without it the HEA simplex is unsolvable by sampling
+   (0% feasible, residual 0.99); with the SAME repair it is satisfied exactly (0.000).
+2. For pure single-target COVERAGE, one-shot repaired rejection covers as well or better
+   than our iterative contraction (which converges/concentrates, not covers).
+3. Our method's real value: on-average more robust returned set (CNC meanS 0.44 vs 0.75),
+   MIXED-SENSE (min F / max MRR along the fixed-Ra band, which rejection does not optimize),
+   and robustness SELECTION: from the same repaired feasible set, get_robust_point picks
+   minS (CNC 0.077 vs typical 0.75 ~10x; HEA 319 vs 1092 ~3.4x).
+
+Notes: ours trips OpenNN's feasibility-ratio guard on the tight simplex unless
+set_min_feasible_ratio is lowered (done, 1e-4). NSGA-II with the same repair is the
+remaining baseline (future work); expected to behave like a more sample-efficient
+repaired sampler.
+
+## Manuscript
+paper/manuscript.pdf (10 pages) - includes the honest baselines section (Sec 5) with
+Table + fig_baselines_feasibility.pdf + fig_baselines_robustness.pdf.
+Draft for review BEFORE sending the title email to jlcalvo@udc.es.

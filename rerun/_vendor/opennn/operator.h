@@ -1,0 +1,150 @@
+﻿//   OpenNN: Open Neural Networks Library
+//   www.opennn.net
+//
+//   O P E R A T O R   H E A D E R
+//
+//   Artificial Intelligence Techniques SL
+//   artelnics@artelnics.com
+
+#pragma once
+
+#include "tensor_types.h"
+#include "tensor_operations.h"
+#include "enum_map.h"
+#include "forward_propagation.h"
+#include "back_propagation.h"
+
+namespace opennn
+{
+
+class Json;
+class JsonWriter;
+
+template<typename Handle>
+struct CudnnDescriptor
+{
+    Handle handle = nullptr;
+#ifdef OPENNN_HAS_CUDA
+    cudnnStatus_t (*deleter)(Handle) = nullptr;
+#else
+    void (*deleter)(Handle) = nullptr;
+#endif
+
+    CudnnDescriptor() = default;
+
+    CudnnDescriptor(CudnnDescriptor&& other) noexcept
+        : handle(other.handle), deleter(other.deleter)
+    {
+        other.handle = nullptr;
+        other.deleter = nullptr;
+    }
+
+    CudnnDescriptor& operator=(CudnnDescriptor&& other) noexcept
+    {
+        if (this != &other)
+        {
+            reset();
+            handle = other.handle;
+            deleter = other.deleter;
+            other.handle = nullptr;
+            other.deleter = nullptr;
+        }
+        return *this;
+    }
+
+    CudnnDescriptor(const CudnnDescriptor&) = delete;
+    CudnnDescriptor& operator=(const CudnnDescriptor&) = delete;
+
+    ~CudnnDescriptor() { reset(); }
+
+    void reset()
+    {
+        if (handle && deleter) deleter(handle);
+        handle = nullptr;
+        deleter = nullptr;
+    }
+
+    operator Handle() const { return handle; }
+    explicit operator bool() const { return handle != nullptr; }
+};
+
+inline constexpr int RNN_SHAPE_SLOTS = 3;
+
+struct CudnnRnnShapeSlot
+{
+    Index batch = -1;
+    Index time  = -1;
+    int   stamp = 0;
+    bool  training_ready = false;
+    CudnnDescriptor<cudnnRNNDataDescriptor_t> x_desc;
+    CudnnDescriptor<cudnnRNNDataDescriptor_t> y_desc;
+    CudnnDescriptor<cudnnTensorDescriptor_t>  h_desc;
+    CudnnDescriptor<cudnnTensorDescriptor_t>  c_desc;
+    Buffer seq_host{Device::CPU};
+    Buffer seq_dev {Device::CUDA};
+};
+
+struct Operator
+{
+    virtual ~Operator() = default;
+
+    virtual vector<TensorSpec> parameter_specs() const { return {}; }
+    virtual vector<TensorSpec> state_specs()     const { return {}; }
+
+    virtual void link_parameters(span<const TensorView>) {}
+    virtual void link_gradients (span<const TensorView>) {}
+    virtual void link_states    (span<const TensorView>) {}
+
+    virtual void set_parameters_random() {}
+    virtual void set_parameters_glorot() {}
+
+    virtual void set_parameters_pytorch() { set_parameters_glorot(); }
+
+    virtual void forward_propagate(ForwardPropagation&, size_t, bool) {}
+    virtual void back_propagate(ForwardPropagation&, BackPropagation&, size_t) const {}
+
+    virtual void to_JSON  (JsonWriter&) const {}
+    virtual void from_JSON(const Json*)       {}
+    virtual void load_state_from_JSON(const Json*) {}
+
+    Type compute_dtype = Type::FP32;
+
+    vector<size_t> input_slots = {0};
+    vector<size_t> output_slots = {1};
+
+    vector<size_t> input_delta_slots = {1};
+    vector<size_t> output_delta_slots = {0};
+
+    TensorView& get_input(ForwardPropagation& forward_propagation, size_t layer, size_t slot_index = 0) const noexcept
+    {
+        const size_t slot = input_slots[slot_index];
+        return slot == 0 ? forward_propagation.input_views[layer][0] : forward_propagation.forward_slots[layer][slot];
+    }
+
+    vector<TensorView>& get_inputs(ForwardPropagation& forward_propagation, size_t layer, size_t = 0) const noexcept
+    {
+        return forward_propagation.input_views[layer];
+    }
+
+    TensorView& get_output(ForwardPropagation& forward_propagation, size_t layer, size_t slot_index = 0) const noexcept
+    {
+        return forward_propagation.forward_slots[layer][output_slots[slot_index]];
+    }
+
+    TensorView& get_output_delta(BackPropagation& back_propagation, size_t layer, size_t slot_index = 0) const noexcept
+    {
+        const size_t slot = output_delta_slots[slot_index];
+        return slot == 0 ? back_propagation.layer_output_deltas[layer] : back_propagation.backward_slots[layer][slot];
+    }
+
+    TensorView& get_input_delta(BackPropagation& back_propagation, size_t layer, size_t slot_index = 0) const noexcept
+    {
+        return back_propagation.backward_slots[layer][input_delta_slots[slot_index]];
+    }
+};
+
+}
+
+// OpenNN: Open Neural Networks Library.
+// Copyright(C) 2005-2026 Artificial Intelligence, SL.
+// Licensed under the GNU Lesser General Public License v2.1 or later.

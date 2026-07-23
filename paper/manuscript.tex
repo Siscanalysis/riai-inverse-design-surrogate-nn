@@ -46,7 +46,11 @@ maximizar la tasa de arranque de material) y la dureza de aleaciones de alta
 entropia sobre el simplex de composicion (fijar la dureza y recuperar la
 variedad de aleaciones factibles). En ambos casos se recupera una variedad rica
 y diversa de disenos que cumplen la especificacion, con satisfaccion exacta de
-las restricciones afines, y se selecciona de ella el diseno mas robusto.
+las restricciones afines, y se selecciona de ella el diseno mas robusto. Una
+comparacion honesta, en la que damos la misma reparacion a las lineas base,
+muestra que la reparacion es el factor decisivo de factibilidad (sin ella la
+restriccion de simplex es inviable por muestreo) y que la aportacion propia del
+metodo son los objetivos de sentido mixto y la seleccion por robustez.
 \end{abstract}
 
 \begin{keyword}
@@ -238,13 +242,74 @@ varianza, coloreada por robustez.}
 \label{fig:hea_proj}
 \end{figure}
 
-\section{Comparacion con lineas base}
+\section{Comparacion honesta con lineas base}
 \label{sec:baselines}
-\emph{[Preliminar.]} Compararemos la cobertura y la diversidad de la variedad
-recuperada frente a un muestreo por rechazo uniforme y frente a un algoritmo
-evolutivo (NSGA-II) que trate la igualdad como objetivo o restriccion, midiendo
-tasa de factibilidad, diversidad, robustez media y numero de evaluaciones de la
-red. Esta seccion se completara con los resultados de dichas lineas base.
+Para separar la aportacion real del metodo de la de la reparacion, damos a las
+lineas base \emph{el mismo operador de reparacion} que usa nuestro metodo. Sobre
+un presupuesto comparable de evaluaciones y con un criterio de factibilidad
+identico (banda de igualdad en la salida mas la restriccion de simplex en las
+entradas), comparamos: muestreo por rechazo \emph{sin} reparacion; muestreo por
+rechazo \emph{con} reparacion (una ronda de muestreo, reparacion afin de entradas,
+reparacion de la salida y filtrado, exactamente los mismos operadores); y nuestro
+metodo iterativo con contraccion del dominio. La Tabla~\ref{tab:base} resume los
+resultados y la Figura~\ref{fig:base_feas} los ilustra.
+
+\begin{table}[t]
+\centering
+\caption{Comparacion con la misma reparacion. Factibilidad = fraccion de
+evaluaciones que cae en la banda de igualdad (y satisface el simplex en HEA).}
+\label{tab:base}
+\begin{tabular}{lcccc}
+\toprule
+Metodo & Reparacion & CNC fact. & HEA fact. & HEA $|\!\sum x-1|$ \\
+\midrule
+Rechazo          & no & 7.8\% & \textbf{0\%} & 0.99 \\
+Rechazo          & si & \textbf{22.9\%} & 3.0\% & \textbf{0.000} \\
+Nuestro (iterativo) & si & 5.7\% & pocos & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{fig_baselines_feasibility.pdf}
+\caption{Factibilidad con la misma reparacion. Sin reparacion, la restriccion de
+simplex de la HEA es practicamente inviable por muestreo (0\%); con la misma
+reparacion se satisface de forma exacta.}
+\label{fig:base_feas}
+\end{figure}
+
+De aqui extraemos tres conclusiones \emph{honestas}. Primera, la reparacion es el
+factor decisivo: sin ella la restriccion de simplex de la HEA es inviable por
+muestreo (0\% de factibilidad, residuo medio $0.99$), mientras que con ella se
+satisface de forma exacta ($|\sum x-1|=0$). Segunda, para la \emph{mera cobertura}
+de la variedad de un objetivo fijo, el rechazo reparado de una sola ronda cubre
+tanto o mas que nuestra contraccion iterativa (22.9\% frente a 5.7\% en CNC): la
+contraccion esta disenada para \emph{converger}, no para cubrir, y concentra las
+soluciones en una subregion. Tercera, la aportacion propia del metodo esta en otro
+lugar: sus soluciones son en promedio mas robustas (sensibilidad media $0.44$
+frente a $0.75$ en CNC), maneja \emph{sentidos mixtos} que el rechazo no optimiza
+(minimizar $F$ y maximizar la MRR sobre la banda, Seccion~\ref{sec:cnc}) y, sobre
+todo, la \emph{seleccion por robustez} extrae del mismo conjunto factible reparado
+el diseno mas robusto, con una sensibilidad muy inferior a la de una solucion
+factible tipica (Figura~\ref{fig:base_rob}: $S$ de $0.75$ a $0.077$ en CNC, de
+$1092$ a $319$ en HEA).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{fig_baselines_robustness.pdf}
+\caption{Ganancia de la seleccion por robustez sobre el mismo conjunto factible
+reparado: de una solucion factible tipica (sensibilidad media) al diseno
+seleccionado (sensibilidad minima).}
+\label{fig:base_rob}
+\end{figure}
+
+En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
+variedad de un objetivo unico; el valor de nuestro planteamiento es la reparacion
+que hace factible el problema, el manejo de objetivos de sentido mixto y la
+seleccion por robustez. La comparacion con un algoritmo evolutivo (NSGA-II) dotado
+del mismo operador de reparacion queda como trabajo en curso, y se espera que se
+comporte como un muestreador reparado mas eficiente en muestras.
 
 \section{Conclusiones}
 \label{sec:conclusiones}
@@ -253,9 +318,14 @@ definida por restricciones de igualdad sobre una red sustituta, con objetivos de
 sentido mixto y una seleccion por robustez. En dos casos con datos reales, el
 metodo recupera variedades ricas de disenos que cumplen la especificacion, con
 satisfaccion exacta de las restricciones afines (incluido el simplex
-composicional), y extrae de ellas el diseno mas robusto. El trabajo futuro
-incluye las lineas base cuantitativas de la Seccion~\ref{sec:baselines}, la
-extension a bandas de especificacion y a objetivos de igualdad multiples.
+composicional), y extrae de ellas el diseno mas robusto. La comparacion honesta
+de la Seccion~\ref{sec:baselines}, que dota a las lineas base de la misma
+reparacion, deja claro que la reparacion es el factor decisivo de factibilidad y
+que la aportacion propia del metodo son los objetivos de sentido mixto y la
+seleccion por robustez; para la mera cobertura de un objetivo unico, el rechazo
+reparado es una linea base simple y competitiva. El trabajo futuro incluye la
+linea base evolutiva (NSGA-II) con la misma reparacion, la extension a bandas de
+especificacion y a objetivos de igualdad multiples.
 
 \section*{Reproducibilidad}
 El codigo, los modelos sustitutos y los datos que reproducen las dos figuras y
