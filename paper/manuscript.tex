@@ -1,0 +1,275 @@
+%% RIAI extension - draft.
+%% Class: elsarticle (RIAI uses elsarticle + ecrc_RIAI.sty). This draft compiles with
+%% stock elsarticle so the PDF can be reviewed now; swap in ecrc_RIAI.sty for submission.
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\graphicspath{{figs/}}
+
+\journal{Revista Iberoamericana de Automatica e Informatica Industrial}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Problemas inversos con objetivos mixtos y restricciones de igualdad
+sobre redes neuronales sustitutas}
+
+\author[nd]{S. Scala}
+\author[nd]{R. Lopez}
+\address[nd]{Artelnics, Salamanca, Espana}
+
+\begin{abstract}
+El diseno industrial optimo suele plantearse como la busqueda de un unico punto
+optimo sobre un modelo sustituto entrenado con datos. Muchos problemas de
+ingenieria, sin embargo, no piden un optimo sino \emph{una especificacion}: un
+valor objetivo que debe alcanzarse exactamente (un acabado, una dureza, una
+carga). En este trabajo tratamos el diseno inverso como la recuperacion del
+\emph{conjunto factible completo} (la variedad de soluciones) que satisface una
+especificacion impuesta como restriccion de igualdad sobre la salida de una red
+neuronal sustituta. Sobre ese planteamiento construimos un esquema de
+optimizacion de respuesta de \emph{sentido mixto}, en el que distintas salidas
+del mismo problema pueden minimizarse, maximizarse o fijarse simultaneamente, y
+un criterio de seleccion que ordena las soluciones de la variedad por su
+\emph{robustez}, calculada con el Jacobiano analitico de la red, equilibrada con
+su centralidad en el dominio. El metodo maneja de forma nativa restricciones de
+caja, afines (incluido el simplex composicional) y no lineales. Lo validamos en
+dos casos con datos reales y solo variables numericas: el torneado CNC de acero
+inoxidable AISI 304 (fijar la rugosidad, minimizar la fuerza de corte y
+maximizar la tasa de arranque de material) y la dureza de aleaciones de alta
+entropia sobre el simplex de composicion (fijar la dureza y recuperar la
+variedad de aleaciones factibles). En ambos casos se recupera una variedad rica
+y diversa de disenos que cumplen la especificacion, con satisfaccion exacta de
+las restricciones afines, y se selecciona de ella el diseno mas robusto.
+\end{abstract}
+
+\begin{keyword}
+diseno inverso \sep optimizacion de respuesta \sep redes neuronales sustitutas
+\sep restricciones de igualdad \sep robustez \sep objetivos mixtos
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduccion}
+\label{sec:intro}
+
+La cadena habitual del diseno industrial guiado por datos entrena un modelo
+sustituto $f:\mathbb{R}^p\to\mathbb{R}^q$ (a menudo una red neuronal) sobre
+medidas experimentales o de simulacion, y despues busca condiciones de operacion
+que optimicen una o varias salidas. En trabajos previos abordamos esta busqueda
+con estrategias sin derivadas que explotan el bajo coste de evaluar la red y
+proyectan las muestras sobre las restricciones antes de evaluarlas, garantizando
+la factibilidad por construccion.
+
+Ese planteamiento devuelve un unico optimo (o un frente de Pareto). Sin embargo,
+una parte importante de los problemas de ingenieria no se formula como
+``optimizar'', sino como ``alcanzar una especificacion'': fabricar una pieza con
+un acabado superficial dado, una aleacion con una dureza dada, un proceso que
+opere a una carga dada. En estos casos el objetivo natural es una
+\emph{restriccion de igualdad} sobre la salida, $f_k(\mathbf{x})=c$, y su
+solucion no es un punto sino una \emph{variedad}: el conjunto de todas las
+recetas que cumplen la especificacion. Recuperar esa variedad, en lugar de un
+solo representante, tiene valor practico directo: permite elegir despues, entre
+todas las soluciones equivalentes en la especificacion, la que mejor satisface
+criterios secundarios (coste, productividad) o la mas robusta frente a errores
+de fabricacion.
+
+Este articulo desarrolla esa idea con tres contribuciones. Primera, planteamos
+el diseno inverso como la recuperacion de la variedad factible definida por una
+o varias restricciones de igualdad sobre la red sustituta
+(Seccion~\ref{sec:metodo}). Segunda, generalizamos la formulacion a
+\emph{objetivos de sentido mixto}, en los que sobre un mismo problema conviven
+salidas a minimizar, a maximizar y a fijar. Tercera, introducimos un criterio de
+seleccion que ordena las soluciones de la variedad por robustez, medida con el
+Jacobiano analitico de la red y ponderada por el dominio, y la equilibra con la
+centralidad del punto en la caja de diseno. El metodo se valida en dos casos con
+datos reales y variables numericas (Secciones~\ref{sec:cnc} y~\ref{sec:hea}).
+
+\section{Optimizacion de respuesta de sentido mixto}
+\label{sec:metodo}
+
+\subsection{Planteamiento}
+Sea $f:\mathcal{X}\subseteq\mathbb{R}^p\to\mathbb{R}^q$ una red neuronal
+entrenada, con entradas $\mathbf{x}$ acotadas a una caja
+$\mathcal{X}=\prod_i[l_i,u_i]$. A cada salida $j$ se le asigna un \emph{sentido}
+$s_j\in\{\text{min},\text{max},\text{fijo}\}$. Las salidas ``fijo'' llevan un
+valor objetivo $c_j$; las salidas ``min''/``max'' definen los objetivos de
+optimizacion. Ademas se admiten restricciones sobre entradas y salidas: de caja,
+afines $\mathbf{a}^\top\mathbf{x}\bowtie\beta$ (incluido el simplex
+$\sum_i x_i = 1$) y no lineales $g(\mathbf{x})\bowtie\beta$.
+
+\subsection{Objetivo fijo y variedad factible}
+Un objetivo de igualdad $f_k(\mathbf{x})=c_k$ se impone como una banda estrecha
+$|f_k(\mathbf{x})-c_k|\le\varepsilon$ alrededor del valor objetivo. El
+optimizador muestrea el dominio, repara las muestras sobre las restricciones
+afines, evalua la red y retiene las que caen en la banda, contrayendo
+iterativamente el dominio alrededor de la region factible. El resultado no es un
+punto sino un conjunto de soluciones $\{\mathbf{x}^{(r)}\}$ que aproxima la
+variedad $\mathcal{M}_c=\{\mathbf{x}\in\mathcal{X}: f_k(\mathbf{x})=c_k\}$.
+
+\subsection{Sentidos mixtos}
+Cuando junto a una salida fija coexisten salidas a minimizar o maximizar, la
+igualdad se mantiene como banda y los sentidos min/max se optimizan sobre ella,
+devolviendo el frente de compromiso restringido a la variedad. Asi, un mismo
+problema puede, por ejemplo, \emph{fijar} una salida, \emph{minimizar} otra y
+\emph{maximizar} una tercera, que es exactamente la situacion del
+caso~\ref{sec:cnc}. Fijar simultaneamente dos salidas
+($f_{k_1}=c_1$ y $f_{k_2}=c_2$) recupera la interseccion de dos variedades.
+
+\subsection{Robustez y seleccion}
+\label{sec:robustez}
+Todas las soluciones de $\mathcal{M}_c$ cumplen la especificacion por igual; se
+distinguen por su sensibilidad a errores en las entradas. Definimos la robustez
+de una solucion mediante el Jacobiano analitico de la red, ponderado por el
+tamano del dominio de cada entrada,
+\begin{equation}
+S(\mathbf{x}) \;=\;
+\sqrt{\sum_{i=1}^{p}\Big(\frac{\partial f_k}{\partial x_i}(\mathbf{x})\,
+(u_i-l_i)\Big)^{2}} ,
+\label{eq:sens}
+\end{equation}
+de modo que $S$ estima la deriva de la salida si cada entrada se desviara en una
+fraccion de su rango. Un valor menor indica un diseno mas manufacturable. El
+Jacobiano se obtiene con el mismo motor de diferenciacion que emplea el
+optimizador (validado frente a diferencias finitas). La seleccion final combina
+robustez y \emph{centralidad} (margen a las paredes de la caja) con un unico
+parametro $\alpha\in[0,1]$ mediante la media geometrica
+$C^{1-\alpha}\,R^{\alpha}$, de forma que $\alpha=0$ elige el diseno mas central
+y $\alpha=1$ el mas robusto.
+
+\section{Caso A: torneado CNC de AISI 304}
+\label{sec:cnc}
+
+\paragraph{Datos y sustituto} Partimos de una campana factorial replicada de
+torneado de acero inoxidable austenitico AISI 304 \citep{canal2022}. Las
+variables de decision (numericas) son la velocidad de corte $v_c$, el avance $f$
+y la profundidad de pasada $a_p$, junto con el estado de desgaste de la
+herramienta $VB$ tratado como variable numerica. Las respuestas son la rugosidad
+media $R_a$ y la fuerza de corte resultante $F$; la tasa de arranque de material
+$\mathrm{MRR}=v_c\,f\,a_p$ es analitica. Entrenamos una red sustituta
+multisalida $(v_c,f,a_p,VB)\to(R_a,F)$ con seleccion de arquitectura de neuronas.
+La fuerza se predice con precision ($R^2\approx0.99$); la rugosidad, dominada por
+el avance pero con dispersion de replicas, alcanza $R^2\approx0.7$ y su
+dispersion define la tolerancia natural de la banda de igualdad.
+
+\paragraph{Diseno de sentido mixto} Planteamos el problema mixto: \emph{fijar}
+$R_a$ en una especificacion de acabado, \emph{minimizar} la fuerza $F$ y
+\emph{maximizar} la productividad $\mathrm{MRR}$. Fijado el objetivo de
+rugosidad en un valor alcanzable del rango del sustituto (aqui
+$R_a\approx0.62~\mu$m), el optimizador recupera una variedad de
+\textbf{3400 recetas} que mantienen $R_a$ dentro de la banda
+$[0.605,0.638]~\mu$m. Sobre esa variedad, la fuerza recorre
+$[136,429]$~N y la MRR $[7.6,28.4]$, de modo que la minimizacion de $F$ y la
+maximizacion de la MRR compiten a lo largo del conjunto factible
+(Figura~\ref{fig:cnc_tradeoff}). Como el problema solo tiene tres palancas
+continuas, la variedad de $R_a$ constante es una superficie bidimensional
+directamente visualizable en el espacio de decision
+(Figura~\ref{fig:cnc_3d}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\linewidth]{fig_cnc_tradeoff.pdf}
+\caption{Caso A. Compromiso de sentido mixto sobre la variedad de $R_a$ fijo:
+cada punto es una receta con la rugosidad en la especificacion; el eje horizontal
+es la fuerza a minimizar y el vertical la MRR a maximizar, coloreados por la
+robustez $S$ de la ecuacion~\eqref{eq:sens}.}
+\label{fig:cnc_tradeoff}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\linewidth]{fig_cnc_manifold3d.pdf}
+\caption{Caso A. La variedad de recetas con $R_a$ fijo es una superficie
+bidimensional en las tres palancas continuas $(v_c,f,a_p)$, coloreada por la
+fuerza de corte $F$.}
+\label{fig:cnc_3d}
+\end{figure}
+
+\paragraph{Seleccion y multiobjetivo de igualdad} El criterio de la
+Seccion~\ref{sec:robustez} devuelve recetas distintas segun $\alpha$: el diseno
+mas robusto reduce a la mitad la sensibilidad respecto de una eleccion central.
+Al anadir la minimizacion explicita de $F$ bajo la rugosidad fija, el solver
+alcanza una receta de fuerza minima ($F\approx78$~N). Finalmente, fijando
+simultaneamente $R_a$ y $F$ se recupera la interseccion de ambas variedades
+(5100 soluciones), que ilustra la capacidad multiobjetivo de igualdad.
+
+\section{Caso B: dureza de aleaciones de alta entropia sobre el simplex}
+\label{sec:hea}
+
+\paragraph{Datos y sustituto} El segundo caso usa una tabla publica de dureza
+Vickers de aleaciones de alta entropia \citep{wen2019}. Las entradas son las diez
+fracciones atomicas (Al, Co, Cr, Cu, Fe, Mn, Mo, Ni, Ti, V), que suman uno, y la
+salida es la dureza $HV$. El sustituto alcanza $R^2\approx0.87$ sobre 370
+aleaciones. La composicion impone la restriccion afin de \emph{simplex}
+$\sum_i x_i = 1$, la prueba canonica del operador de reparacion afin.
+
+\paragraph{Recuperacion de la variedad de aleaciones} Fijamos la dureza en un
+valor alcanzable ($HV\approx546$) y recuperamos la variedad de composiciones que
+la producen. El optimizador devuelve \textbf{170 aleaciones} distintas, todas
+sobre el simplex con error maximo $|\sum_i x_i-1|=0$ (satisfaccion exacta de la
+restriccion afin). La variedad es diversa: cada fraccion recorre entre el 44\% y
+el 99\% de su rango admisible (Figura~\ref{fig:hea_parallel}), lo que muestra que
+existen familias de aleaciones muy distintas con la misma dureza. Sobre ese
+conjunto, la robustez de la ecuacion~\eqref{eq:sens} separa las composiciones
+poco sensibles a la variacion de composicion de las muy sensibles
+(Figura~\ref{fig:hea_proj}), y la seleccion centralidad--robustez recomienda la
+aleacion mas manufacturable.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{fig_hea_parallel.pdf}
+\caption{Caso B. Variedad de composiciones con dureza fija, en coordenadas
+paralelas sobre las diez fracciones atomicas (suma uno). El color codifica la
+robustez $S$; las trayectorias oscuras son las aleaciones mas robustas.}
+\label{fig:hea_parallel}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.68\linewidth]{fig_hea_projection.pdf}
+\caption{Caso B. Proyeccion de la variedad sobre las dos fracciones de mayor
+varianza, coloreada por robustez.}
+\label{fig:hea_proj}
+\end{figure}
+
+\section{Comparacion con lineas base}
+\label{sec:baselines}
+\emph{[Preliminar.]} Compararemos la cobertura y la diversidad de la variedad
+recuperada frente a un muestreo por rechazo uniforme y frente a un algoritmo
+evolutivo (NSGA-II) que trate la igualdad como objetivo o restriccion, midiendo
+tasa de factibilidad, diversidad, robustez media y numero de evaluaciones de la
+red. Esta seccion se completara con los resultados de dichas lineas base.
+
+\section{Conclusiones}
+\label{sec:conclusiones}
+Hemos planteado el diseno inverso como la recuperacion de la variedad factible
+definida por restricciones de igualdad sobre una red sustituta, con objetivos de
+sentido mixto y una seleccion por robustez. En dos casos con datos reales, el
+metodo recupera variedades ricas de disenos que cumplen la especificacion, con
+satisfaccion exacta de las restricciones afines (incluido el simplex
+composicional), y extrae de ellas el diseno mas robusto. El trabajo futuro
+incluye las lineas base cuantitativas de la Seccion~\ref{sec:baselines}, la
+extension a bandas de especificacion y a objetivos de igualdad multiples.
+
+\section*{Reproducibilidad}
+El codigo, los modelos sustitutos y los datos que reproducen las dos figuras y
+todas las cifras estan disponibles en el repositorio companion (directorio
+\texttt{rerun/}), construido sobre la biblioteca OpenNN.
+
+\begin{thebibliography}{9}
+\bibitem[Canal y Borille(2022)]{canal2022}
+Canal, G., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
+(AISI 304). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.
+
+\bibitem[Wen et al.(2019)]{wen2019}
+Wen, C., Zhang, Y., Wang, C., et al., 2019. Machine learning assisted design of
+high entropy alloys with desired property. Acta Materialia 170, 109--117.
+\end{thebibliography}
+
+\end{document}

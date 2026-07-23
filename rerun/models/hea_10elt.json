@@ -1,0 +1,140 @@
+{
+  "NeuralNetwork": {
+    "Inputs": {
+      "InputsNumber": "10",
+      "Input": [
+        {
+          "Index": "1",
+          "Text": "Al"
+        },
+        {
+          "Index": "2",
+          "Text": "Co"
+        },
+        {
+          "Index": "3",
+          "Text": "Cr"
+        },
+        {
+          "Index": "4",
+          "Text": "Cu"
+        },
+        {
+          "Index": "5",
+          "Text": "Fe"
+        },
+        {
+          "Index": "6",
+          "Text": "Mn"
+        },
+        {
+          "Index": "7",
+          "Text": "Mo"
+        },
+        {
+          "Index": "8",
+          "Text": "Ni"
+        },
+        {
+          "Index": "9",
+          "Text": "Ti"
+        },
+        {
+          "Index": "10",
+          "Text": "V"
+        }
+      ]
+    },
+    "Layers": {
+      "LayersNumber": "5",
+      "Items": [
+        {
+          "Scaling": {
+            "Label": "scaling_layer",
+            "InputDimensions": "10 ",
+            "OutputDimensions": "10 ",
+            "Means": "0.169678 0.151877 0.17764 0.0790099 0.17848 0.0192088 0.0103738 0.173449 0.0249654 0.0153179 ",
+            "StandardDeviations": "0.138322 0.0886719 0.0692606 0.0869797 0.0800291 0.0621236 0.0389612 0.0920816 0.0653555 0.0525168 ",
+            "Minimums": "0 0 0 0 0 0 0 0 0 0 ",
+            "Maximums": "0.47 0.428571 0.35 0.332667 0.571 0.4 0.25 0.5 0.332667 0.332667 ",
+            "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation",
+            "MinRange": "-1.000000",
+            "MaxRange": "1.000000"
+          }
+        },
+        {
+          "Dense": {
+            "Label": "dense2d_layer_1",
+            "InputDimensions": "10 ",
+            "OutputDimensions": "37 ",
+            "Activation": "Tanh"
+          }
+        },
+        {
+          "Dense": {
+            "Label": "approximation_layer",
+            "InputDimensions": "37 ",
+            "OutputDimensions": "1 ",
+            "Activation": "Identity"
+          }
+        },
+        {
+          "Unscaling": {
+            "Label": "unscaling_layer",
+            "InputDimensions": "1 ",
+            "OutputDimensions": "1 ",
+            "MinRange": "-1.000000",
+            "MaxRange": "1.000000",
+            "Neurons": [
+              {
+                "Descriptives": "109 920.2000122 492.0870667 228.0934296",
+                "Scaler": "MeanStandardDeviation"
+              }
+            ]
+          }
+        },
+        {
+          "Bounding": {
+            "Label": "bounding_layer",
+            "InputDimensions": "1 ",
+            "OutputDimensions": "1 ",
+            "BoundingMethod": "NoBounding"
+          }
+        }
+      ],
+      "SourceLayers": {
+        "SourceLayer": [
+          {
+            "LayerIndex": "0",
+            "Text": "-1"
+          },
+          {
+            "LayerIndex": "1",
+            "Text": "0"
+          },
+          {
+            "LayerIndex": "2",
+            "Text": "1"
+          },
+          {
+            "LayerIndex": "3",
+            "Text": "2"
+          },
+          {
+            "LayerIndex": "4",
+            "Text": "3"
+          }
+        ]
+      }
+    },
+    "Outputs": {
+      "OutputsNumber": "1",
+      "Output": [
+        {
+          "Index": "1",
+          "Text": "HV"
+        }
+      ]
+    }
+  }
+}
