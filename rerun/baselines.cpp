@@ -319,7 +319,7 @@ int main(int argc, char** argv)
         return Xk;
     };
 
-    const long BUDGET = 48000;   // 8 iters x 6000 evals; also the one-shot budget (equal total)
+    const long BUDGET = 24000;   // 8 iters x 3000 evals; also the one-shot budget (equal total)
     vector<Metrics> results;
 
     auto record = [&](const string& m, const MatrixR& Xfeas, long budget, long tevals, double secs, double sresid) {

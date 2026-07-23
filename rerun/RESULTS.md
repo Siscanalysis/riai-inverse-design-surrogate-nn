@@ -35,14 +35,15 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
   TODO if wanted: add x_i ≥ 0 formula constraints to clamp.
 
 ## Baselines (honest: SAME repair given to ALL baselines)  -> out/baselines_{cnc,hea}.csv
-Equal eval budget (48000), identical feasibility test (output band + simplex). 4 methods.
+Equal eval budget (24000; halved to expose eval-efficiency), identical feasibility test
+(output band + simplex). 4 methods. feas% = feasible / TRUE evals.
 
 | method | repair | CNC feas% | CNC fill% | CNC minS | HEA feas% | HEA simplex | HEA minS |
 |---|---|---|---|---|---|---|---|
-| reject_norepair | no  | 7.8%  | 99.9%  | 0.055 | 0%   | 0.99  | -   |
-| reject_repair   | yes | 22.9% | 99.98% | 0.077 | 3.0% | 0.000 | 319 |
-| ours_iterative  | yes | 5.7%  | 95.2%  | 0.185 | 6 pts| 0.000 | 477 |
-| nsga2_repair    | yes | 0.2%  | 32.6%  | 0.022 | 73pts| 0.000 | 111 |
+| reject_norepair | no  | 7.9%  | 99.9%  | 0.055 | 0%   | 0.98  | -   |
+| reject_repair   | yes | 22.9% | 99.97% | 0.082 | 3.1% | 0.000 | 311 |
+| ours_iterative  | yes | 5.9%  | 90.4%  | 0.141 | 6 pts| 0.000 | 770 |
+| nsga2_repair    | yes | 0.4%  | 7.1%   | 0.039 | 73pts| 0.000 | 115 |
 
 Honest findings (none is "we dominate"):
 1. Repair is the decisive enabler: without it the HEA simplex is unsolvable by sampling
@@ -59,21 +60,20 @@ NSGA-II: real-coded, SBX + polynomial mutation, fast-non-dominated-sort + crowdi
 bi-objective (closeness, S), same repair (closed-form simplex projection) each generation.
 
 ### Fairness (true evals via get_evaluations_used)  [answers "same #evals?"]
-All methods use <= 48000 TRUE surrogate forwards (repair evals are counted within the
-budget): reject_norepair 48000, reject_repair 48000, NSGA-II 48000, ours 36000 (ours
-converges early on the relative tolerance -> uses FEWER, not more).
+All methods use <= 24000 TRUE surrogate forwards (repair evals counted within budget):
+reject 24000, NSGA-II 24000, ours 18000 (converges early on the tolerance -> FEWER, not more).
 
 ### Mixed-sense optimization (CNC: fix Ra + minimize F)  -> out/baselines_cnc_mixedsense.csv, out/pymoo_cnc.csv
 The pure fixed-target is the WORST case for ours (nothing to optimize). With a secondary
-objective (min F), ours (an optimizer) beats a sampler and is competitive with the best
-metaheuristics, at fewer evals:
-| method | best feasible F [N] | evals |
-| rejection (sampler) | 88.5 | 48000 |
-| GA        | 87.5 | 48000 |
-| CMA-ES    | infeasible (missed Ra band) | 48000 |
-| DE        | 78.0 | 48000 |
-| PSO       | 78.0 | 48000 |
-| ours      | **77.9** | **36000** |
+objective (min F), ours (an optimizer) beats a sampler and ties the best metaheuristics,
+at fewer evals -- and the gap to sampling GROWS as the budget shrinks:
+| method | best feasible F [N] @24k | @48k |
+| rejection (sampler) | 97.6 | 88.5 |   <- degrades most at low budget
+| GA        | 87.5 | 87.5 |
+| CMA-ES    | infeasible (missed Ra band) | infeasible |
+| DE        | 78.0 | 78.0 |
+| PSO       | 78.0 | 78.0 |
+| ours      | **78.0 @18k evals** | 77.9 @36k |   <- barely changes (converges)
 
 ### pymoo panel with the SAME repair (GA/DE/PSO/CMA-ES)  -> out/pymoo_{cnc,hea}.csv
 - HEA simplex: with the same repair, GA/DE/PSO satisfy sum=1 EXACTLY and hit the HV band;

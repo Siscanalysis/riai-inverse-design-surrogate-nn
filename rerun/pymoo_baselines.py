@@ -16,7 +16,7 @@ import sys, os, csv, importlib.util
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BUDGET, POP = 48000, 100
+BUDGET, POP = 24000, 100
 NGEN = BUDGET // POP
 
 def load_surrogate(case):

@@ -264,7 +264,7 @@ y~\ref{fig:base_trade} los ilustran.
 \begin{table}[t]
 \centering
 \caption{Comparacion con la misma reparacion, mismo presupuesto de evaluaciones
-($4.8\times10^4$) y criterio de factibilidad identico (banda de igualdad y simplex).
+($2.4\times10^4$) y criterio de factibilidad identico (banda de igualdad y simplex).
 Cobertura = relleno medio del dominio por las soluciones factibles; robustez = menor
 $S$ alcanzado (menor es mejor). Caso CNC; la HEA se comenta en el texto y la
 Figura~\ref{fig:base_trade}.}
@@ -273,10 +273,10 @@ Figura~\ref{fig:base_trade}.}
 \toprule
 Metodo & Reparacion & Factib. & Cobertura & Robustez min $S$ \\
 \midrule
-Rechazo          & no & 7.8\%  & 99.9\%  & 0.055 \\
-Rechazo          & si & \textbf{22.9\%} & \textbf{99.98\%} & 0.077 \\
-Nuestro (iterativo) & si & 5.7\%  & 95.2\%  & 0.185 \\
-NSGA-II          & si & 0.2\%  & 32.6\%  & \textbf{0.022} \\
+Rechazo          & no & 7.9\%  & 99.9\%  & 0.055 \\
+Rechazo          & si & \textbf{22.9\%} & \textbf{99.97\%} & 0.082 \\
+Nuestro (iterativo) & si & 5.9\%  & 90.4\%  & 0.141 \\
+NSGA-II          & si & 0.4\%  & 7.1\%   & \textbf{0.039} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -300,10 +300,10 @@ trabajo companion sobre optimizacion de respuesta \citep{scala2026idc}, y aqui l
 damos por igual a todas las lineas base para que la comparacion sea limpia. Segunda,
 existe un compromiso claro entre \emph{cobertura} de la variedad y \emph{robustez}
 del mejor punto (Tabla~\ref{tab:base}, Figura~\ref{fig:base_trade}): el rechazo
-reparado cubre mejor la variedad (relleno $99.98\%$, mayor factibilidad), mientras
+reparado cubre mejor la variedad (relleno $99.97\%$, mayor factibilidad), mientras
 que NSGA-II, que optimiza explicitamente la sensibilidad, encuentra el diseno mas
-robusto (menor $S$: $0.022$ en CNC, $111$ en HEA) pero cubre mal la variedad
-(relleno $32\%$ y $4\%$). Nuestra contraccion iterativa queda en un punto intermedio.
+robusto (menor $S$: $0.039$ en CNC, $115$ en HEA) pero cubre mal la variedad
+(relleno $7\%$ y $4\%$). Nuestra contraccion iterativa queda en un punto intermedio.
 Tercera, el valor del planteamiento no esta en ganar un eje concreto sino en ofrecer,
 en una unica pasada sin derivadas, la \emph{variedad completa} de un objetivo fijado,
 el manejo de \emph{sentidos mixtos} (minimizar $F$ y maximizar la MRR sobre la banda,
@@ -328,8 +328,12 @@ objetivo secundario. En la tarea de sentido mixto de la CNC (fijar $R_a$ y
 presupuesto, contra metaheuristicas de \texttt{pymoo} (GA, DE, PSO, CMA-ES) dotadas de
 la misma reparacion (Tabla~\ref{tab:mixed}). Nuestro metodo alcanza la menor fuerza
 factible empatando con los mejores (DE, PSO) y superando a GA y a CMA-ES, y lo hace con
-\emph{menos} evaluaciones reales ($3.6\times10^4$ frente a $4.8\times10^4$; el resto de
-metodos agotan el presupuesto). En la HEA, con la misma reparacion GA, DE y PSO
+\emph{menos} evaluaciones reales ($1.8\times10^4$ frente a $2.4\times10^4$; el resto de
+metodos agotan el presupuesto). Ademas, la ventaja frente al muestreo \emph{crece} al
+reducir el presupuesto: al pasar de $4.8$ a $2.4\times10^4$ evaluaciones la mejor fuerza
+del rechazo empeora de $88.5$ a $97.6$~N, mientras que la nuestra apenas cambia
+($77.9$ a $78.0$~N), porque converge en vez de muestrear. En la HEA, con la misma
+reparacion GA, DE y PSO
 satisfacen el simplex de forma exacta y alcanzan la banda de dureza, mientras que
 CMA-ES (penalizacion por muerte) fracasa sobre la igualdad de medida nula, en linea con
 lo observado en la literatura: la reparacion es el habilitador, no un detalle.
@@ -343,12 +347,12 @@ $F$ (menor es mejor) y evaluaciones reales del sustituto. Misma reparacion y pre
 \toprule
 Metodo & mejor $F$ [N] & evals \\
 \midrule
-Rechazo (muestreo)  & 88.5 & $4.8\times10^4$ \\
-GA                  & 87.5 & $4.8\times10^4$ \\
-CMA-ES              & infactible & $4.8\times10^4$ \\
-DE                  & 78.0 & $4.8\times10^4$ \\
-PSO                 & 78.0 & $4.8\times10^4$ \\
-Nuestro (contraccion) & \textbf{77.9} & $\mathbf{3.6\times10^4}$ \\
+Rechazo (muestreo)  & 97.6 & $2.4\times10^4$ \\
+GA                  & 87.5 & $2.4\times10^4$ \\
+CMA-ES              & infactible & $2.4\times10^4$ \\
+DE                  & 78.0 & $2.4\times10^4$ \\
+PSO                 & 78.0 & $2.4\times10^4$ \\
+Nuestro (contraccion) & \textbf{78.0} & $\mathbf{1.8\times10^4}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
