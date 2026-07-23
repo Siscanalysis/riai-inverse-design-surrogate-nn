@@ -19,7 +19,13 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
 - Reachable Ra ≈ [0.13, 1.25] µm; equality target = 0.62 µm (55th pct, interior).
 - RUN1 (FIX Ra): manifold = 3400 recipes, Ra held in [0.605, 0.638] (band ≈ target).
   - F trade-off [136, 429] N (MINIMIZE); MRR trade-off [7.6, 28.4] (MAXIMIZE) — genuine tension.
-  - get_robust_point balance 0/0.5/1 → distinct rows (sensRa 0.60–0.80).
+  - get_robust_point balance 0/0.5/1 → distinct rows. wallMargin (centrality, 1=centre,
+    0=on a wall) = 0.685 / 0.387 / 0.072: the pure-robust pick (a=1) sits AT the domain
+    edge (margin 0.07) where the surrogate extrapolates/saturates; a=0.5 and a=0 pull the
+    recipe back into the well-sampled interior (0.39, 0.69). => prefer a moderate alpha as
+    a hedge against surrogate extrapolation. (sensRa printed is Ra-only; get_robust_point
+    optimizes the FULL-output Jacobian, so don't tie S to sensRa.) Added to manuscript
+    Sec 2 (robustez) + Sec 3 (Caso A).
 - RUN2 (FIX Ra + MIN F): min-F recipe F=77.8 N at x=[vc 387, f 0.090, ap 0.25, VB 0].
 - RUN3 (FIX Ra + FIX F multi-target): 5100 intersection recipes.
 - CSVs: out/cnc_manifold.csv, out/cnc_fixRa_minF.csv, out/cnc_multitarget.csv, out/cnc_domain.csv
@@ -30,6 +36,9 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
 - Manifold = 170 alloys (feasible ratio ~0.008 — tight equality; oversampling escalates, OK).
 - Diversity: fraction fills 44–99% of domain (rich, high-dim manifold).
 - Robustness: most-robust alloy sens 454 vs least ~912; get_robust_point balance 1 → row 32.
+  wallMargin: a=1 row32 margin 0.005 (on a simplex edge, sens 454); a=0/0.5 row167 margin
+  0.142 (sens 912). On the simplex margins are inherently small (many fractions near 0), so
+  the extrapolation-hedge argument is cleaner on CNC; HEA shown qualitatively.
 - CSV: out/hea_manifold.csv
 - Minor: one V fraction dips to −0.006 (box lower bound slightly <0); physically ≈0.
   TODO if wanted: add x_i ≥ 0 formula constraints to clamp.

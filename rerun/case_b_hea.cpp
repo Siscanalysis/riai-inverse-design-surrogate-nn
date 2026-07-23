@@ -106,12 +106,26 @@ int main(int argc, char** argv)
              << "  [" << mn << ", " << mx << "]  fill=" << (sp > 1e-9f ? (mx - mn) / sp * 100.0f : 0.0f) << "%\n";
     }
 
-    // selection dial
+    // selection dial. wallMargin = worst-case normalized distance to the nearest domain wall
+    // (1=centre, 0=on a wall): low margin => point at the edge of the training support, where
+    // the surrogate extrapolates/saturates. Prefer a more central point (lower balance) to hedge.
+    auto wall_margin = [&](const VectorR& row) -> float {
+        float worst = 1.0f;
+        for (Index c = 0; c < n_in; ++c) {
+            const float half = 0.5f * (domain.superior_frontier(c) - domain.inferior_frontier(c));
+            if (half < 1e-9f) continue;
+            const float m = min(row(c) - domain.inferior_frontier(c),
+                                domain.superior_frontier(c) - row(c)) / half;
+            worst = min(worst, max(0.0f, min(1.0f, m)));
+        }
+        return worst;
+    };
     cout << "\n--- get_robust_point(front, balance) ---\n";
     for (const float b : { 0.0f, 0.5f, 1.0f }) {
         const auto [idx, row] = opt.get_robust_point(M, b);
         cout << "  balance=" << b << " -> row " << idx << "  HV=" << row(n_in)
-             << "  sens=" << (jac ? sens[(size_t)idx] : 0.0f) << "\n";
+             << "  sens=" << (jac ? sens[(size_t)idx] : 0.0f)
+             << "  wallMargin=" << wall_margin(row) << "\n";
     }
 
     // dump

@@ -148,10 +148,22 @@ de modo que $S$ estima la deriva de la salida si cada entrada se desviara en una
 fraccion de su rango. Un valor menor indica un diseno mas manufacturable. El
 Jacobiano se obtiene con el mismo motor de diferenciacion que emplea el
 optimizador (validado frente a diferencias finitas). La seleccion final combina
-robustez y \emph{centralidad} (margen a las paredes de la caja) con un unico
-parametro $\alpha\in[0,1]$ mediante la media geometrica
-$C^{1-\alpha}\,R^{\alpha}$, de forma que $\alpha=0$ elige el diseno mas central
-y $\alpha=1$ el mas robusto.
+robustez y \emph{centralidad} $C(\mathbf{x})$, definida como el menor margen
+normalizado de la solucion a las paredes de la caja de diseno ($1$ en el centro,
+$0$ sobre una pared), con un unico parametro $\alpha\in[0,1]$ mediante la media
+geometrica $C^{1-\alpha}\,R^{\alpha}$, de forma que $\alpha=0$ elige el diseno mas
+central y $\alpha=1$ el mas robusto.
+
+La centralidad no es un mero desempate: es una salvaguarda frente al propio modelo.
+La robustez $S$ se estima con el Jacobiano del \emph{sustituto}, y ese sustituto
+solo es fiable dentro del soporte de los datos de entrenamiento. Una solucion con
+margen pequeno se situa en el borde de la caja, justo donde la red extrapola y sus
+unidades se saturan; alli su Jacobiano, y por tanto la robustez que le atribuimos,
+es menos digno de confianza. Por eso, ante el riesgo de extrapolacion, conviene
+preferir un punto mas central (un $\alpha$ moderado, en torno a $0.5$) que sacrifica
+algo de robustez nominal a cambio de una prediccion en la que podemos confiar. La
+seleccion se resuelve sobre cada variedad por separado, de modo que el punto
+equilibrado depende de la geometria concreta de $\mathcal{M}_c$.
 
 \section{Caso A: torneado CNC de AISI 304}
 \label{sec:cnc}
@@ -204,8 +216,15 @@ fuerza de corte $F$.}
 \paragraph{Seleccion y multiobjetivo de igualdad} El criterio de la
 Seccion~\ref{sec:robustez} devuelve recetas distintas segun $\alpha$ (mas central
 frente a mas robusta), que difieren claramente en fuerza y productividad sobre la
-misma especificacion de rugosidad. Al anadir la minimizacion explicita de $F$ bajo
-la rugosidad fija, el solver alcanza una receta de fuerza minima ($F\approx78$~N). Finalmente, fijando
+misma especificacion de rugosidad. La diferencia no es solo de valor: sobre esta
+variedad de 3400 recetas, la receta de robustez pura ($\alpha=1$) tiene un margen a
+las paredes de apenas $0.07$, es decir, se apoya casi sobre el borde de la caja de
+entrenamiento, donde el sustituto extrapola; al bajar a $\alpha=0.5$ y $\alpha=0$ el
+margen sube a $0.39$ y $0.69$, devolviendo recetas en el interior bien muestreado del
+dominio. En la practica preferimos ese punto mas central como cobertura frente al
+riesgo de extrapolacion del modelo (Seccion~\ref{sec:robustez}). Al anadir la
+minimizacion explicita de $F$ bajo la rugosidad fija, el solver alcanza una receta de
+fuerza minima ($F\approx78$~N). Finalmente, fijando
 simultaneamente $R_a$ y $F$ se recupera la interseccion de ambas variedades
 (5100 soluciones), que ilustra la capacidad multiobjetivo de igualdad.
 

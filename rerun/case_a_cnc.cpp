@@ -170,13 +170,28 @@ int main(int argc, char** argv)
         cout << "  wrote out/cnc_manifold.csv\n";
     }
 
-    // robustness + centrality selection
+    // robustness + centrality selection.
+    // margin = worst-case normalized distance to the nearest domain wall (1=box centre,
+    // 0=on a wall). It quantifies extrapolation/saturation risk of the surrogate: points near
+    // a wall sit at the edge of the training support, where the net extrapolates and saturates.
+    auto wall_margin = [&](const VectorR& row) -> float {
+        float worst = 1.0f;
+        for (Index c = 0; c < n_in; ++c) {
+            const float half = 0.5f * (domain.superior_frontier(c) - domain.inferior_frontier(c));
+            if (half < 1e-9f) continue;
+            const float m = min(row(c) - domain.inferior_frontier(c),
+                                domain.superior_frontier(c) - row(c)) / half;
+            worst = min(worst, max(0.0f, min(1.0f, m)));
+        }
+        return worst;
+    };
     cout << "\n--- get_robust_point(front, balance) : centrality <-> robustness ---\n";
     for (const float b : { 0.0f, 0.5f, 1.0f }) {
         const auto [idx, row] = opt.get_robust_point(M, b);
         cout << "  balance=" << b << " -> row " << idx
              << "  Ra=" << row(n_in + ra) << "  F=" << row(n_in + ff)
-             << "  MRR=" << mrr_of(M, idx) << "  sensRa=" << sensRa[(size_t)idx] << "\n";
+             << "  MRR=" << mrr_of(M, idx) << "  sensRa=" << sensRa[(size_t)idx]
+             << "  wallMargin=" << wall_margin(row) << "\n";
     }
 
     // ============ RUN 2: mixed-sense solver FIX Ra + MINIMIZE F ============
