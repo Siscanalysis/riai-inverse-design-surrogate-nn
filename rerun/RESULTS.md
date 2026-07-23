@@ -51,26 +51,41 @@ the earliest early-stop is i=5, which IS the last iteration when max_iterations=
 CANNOT stop before spending the whole budget => uses exactly 12000, same as everyone.
 (Previously iters=8 -> stopped at i=5 -> only 18000; that "fewer evals" optics is now gone.)
 
+NSGA-II REPURPOSED (2026-07-23): it NO LONGER optimizes robustness. It now optimizes the
+REAL objectives (CNC: min F, max MRR with fix-Ra as a constraint via Deb constrained
+domination; HEA: feasibility on the simplex). Robustness is post-hoc selection for ALL
+methods now (nobody optimizes S). NSGA-II best feasible F on CNC = 78.03 (TIES ours/DE/PSO).
+
 | method | repair | CNC feas% | CNC fill% | CNC minS | HEA feas% | HEA simplex | HEA minS |
 |---|---|---|---|---|---|---|---|
 | reject_norepair | no  | 7.6%  | 99.8%  | 0.055 | 0%    | 0.98  | -    |
 | reject_repair   | yes | 23.1% | 99.96% | 0.094 | 358pts| 6e-6  | 259  |
 | ours_iterative  | yes | 4.2%  | 78.6%  | 0.278 | 4 pts | 8e-8  | 1400 |
-| nsga2_repair    | yes | 0.8%  | 6.5%   | 0.040 | 11pts | 2e-9  | 151  |
+| nsga2 (F,MRR)   | yes | 0.8%  | 45.2%  | 0.853 | 100pts| 8e-10 | 610  |
 
 Honest findings (none is "we dominate"):
 1. Repair is the decisive enabler: without it the HEA simplex is unsolvable by sampling
    (0% feasible, residual 0.99); with the SAME repair it is satisfied EXACTLY (0.000) by all.
    The repair operator is shared machinery from the companion (new_IDC), NOT novel here.
-2. Coverage <-> robustness trade-off: reject_repair covers best (fill ~99.96% CNC/98.9% HEA,
-   highest feas); NSGA-II (optimizes S) finds the MOST ROBUST design (minS 0.040 CNC / 151 HEA)
-   but covers worst (fill 6.5% CNC / 24% HEA); ours (contraction) is intermediate (79% CNC).
-3. Our value = the UNIFIED inverse-problem framework: recover the whole fixed-target manifold
+2. Robustness is POST-HOC for all (nobody optimizes S). Best min S tracks coverage: broad
+   sampling (reject) contains the flattest points (minS 0.055 CNC), the optimizers (ours 79%
+   fill / NSGA-II 45% fill) return smaller sets with higher minS. So coverage & robustness-of-
+   best-point go together; the real differentiator is extrapolation (finding 3).
+3. EXTRAPOLATION (the real differentiator, out/feasible_*.csv + analyze_extrapolation.py):
+   wall-margin (dist to box wall) + dist-to-nearest-training-point per feasible point.
+   The two metrics DISAGREE and that's honest: by dist-to-data NSGA-II is closest (0.11, it
+   sits on extreme real recipes) but 99% of its points are ON the walls; rejection is farthest
+   from data (0.18-0.19); OURS is the ONLY method favorable on BOTH -- close to data (0.15) AND
+   interior (only 6% edge pts). HEA (simplex => all on walls, use dist-to-data): ours 0.16 best,
+   reject 0.22, NSGA-II 0.27. Claim = "ours uniquely stays near-data AND interior", NOT "safest
+   on every metric".
+4. Our value = the UNIFIED inverse-problem framework: recover the whole fixed-target manifold
    + mixed senses (min F / max MRR along the band) + robustness selection, in one derivative-
-   free pass. Baselines each solve only one axis (coverage OR a robust optimum).
+   free pass. NSGA-II (repurposed) ties our objective but returns only a front, not the manifold.
 
-NSGA-II: real-coded, SBX + polynomial mutation, fast-non-dominated-sort + crowding,
-bi-objective (closeness, S), same repair (closed-form simplex projection) each generation.
+NSGA-II (repurposed): real-coded, SBX + poly mutation, NSGA-II sort + crowding. CNC = bi-obj
+(min F, max MRR) with Ra-band as a CONSTRAINT via Deb constrained-domination; HEA = single-obj
+feasibility on simplex. Robustness NOT an objective (post-hoc, like ours). Same input repair.
 
 ### Fairness (true evals via get_evaluations_used)  [answers "same #evals?"]
 ALL methods use EXACTLY 12000 TRUE surrogate forwards (repair evals counted within budget):
@@ -81,7 +96,8 @@ The pure fixed-target is the WORST case for ours (nothing to optimize). With a s
 objective (min F), ours ties the best general-purpose optimizers and beats GA, sampling and
 CMA-ES -- all at the SAME 12000-eval budget (no "fewer evals" caveat anymore):
 | method | best feasible F [N] @12000 evals |
-| ours      | **78.0** |  <- ties DE/PSO (top group)
+| ours      | **78.0** |  <- ties the best optimizers (top group)
+| NSGA-II   | 78.0 |  <- repurposed MO (min F/max MRR), now ties us
 | DE        | 78.0 |
 | PSO       | 78.0 |
 | rejection (sampler) | 86.6 |

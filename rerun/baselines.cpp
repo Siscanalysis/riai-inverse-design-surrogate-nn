@@ -118,48 +118,62 @@ static double mean_fill_of(const MatrixR& X, const ResponseOptimization::Domain&
 
 // ------------------------------------------------------------------------------------
 // NSGA-II (real-coded, SBX crossover + polynomial mutation, fast non-dominated sort +
-// crowding), bi-objective: minimize closeness |f_k - c| and robustness S(x). Offspring
-// are repaired with the same operator (repair_x) each generation. Returns the final
+// crowding). It optimizes the PROBLEM's own objectives, NOT robustness: for the CNC it is a
+// genuine bi-objective search (minimize force F, maximize MRR) with the fixed-Ra equality
+// handled as a constraint via Deb's constrained domination; for the HEA it is a single-
+// objective feasibility search (drive HV to the band) on the simplex. Offspring get the same
+// input repair (repair_x) each generation. Robustness is NEVER an objective here; like ours,
+// it is selected POST-HOC on the returned front (record()/get_robust_point). Returns the final
 // population inputs (P x n_in); the caller applies the common feasibility filter.
 // ------------------------------------------------------------------------------------
-static MatrixR nsga2_repair(NeuralNetwork& net, NetworkDifferential& diff,
+static MatrixR nsga2_repair(NeuralNetwork& net,
                             ResponseOptimization& opt,
                             const ResponseOptimization::Domain& dom,
-                            Index n_in, Index n_out, Index ok, float target,
-                            bool simplex, const VectorR& lo, const VectorR& up,
-                            const VectorR& span, int P, int G, long& evals_out)
+                            Index n_in, Index n_out, Index ok, Index ff, float target, float band,
+                            bool cnc, bool simplex, const VectorR& lo, const VectorR& up,
+                            int P, int G, long& evals_out)
 {
     std::mt19937 rng(12345);
     std::uniform_real_distribution<double> U(0.0, 1.0);
     const double eta_c = 15.0, eta_m = 20.0, pm = 1.0 / (double)n_in;
 
-    auto S_of = [&](const VectorR& x) {
-        VectorR cot = VectorR::Zero(n_out); cot(ok) = 1.0f;
-        const VectorR g = diff.vjp(x, cot);
-        double s = 0; for (Index c = 0; c < n_in; ++c) s += (g(c)*span(c))*(g(c)*span(c));
-        return sqrt(s);
-    };
-    // batch closeness objective for a set of rows
-    auto eval_pop = [&](vector<VectorR>& X, vector<double>& f1, vector<double>& f2) {
+    auto mrr_of = [&](const VectorR& x) { return (double)x(0) * x(1) * x(2); };
+    // batch objectives (both MINIMIZED) + constraint violation for a set of rows.
+    //   CNC : f1 = F (minimize), f2 = -MRR (i.e. maximize MRR), cv = max(0, |Ra - c| - band).
+    //   HEA : f1 = |HV - c| (feasibility), f2 = 0, cv = 0 (simplex handled by repair).
+    auto eval_pop = [&](vector<VectorR>& X, vector<double>& f1, vector<double>& f2, vector<double>& cv) {
         const int m = (int)X.size();
         MatrixR M((Index)m, n_in);
         for (int i = 0; i < m; ++i) M.row(i) = X[i].transpose();
         const MatrixR Y = net.calculate_outputs(M);
-        f1.resize(m); f2.resize(m);
-        for (int i = 0; i < m; ++i) { f1[i] = fabs(Y(i, ok) - target); f2[i] = S_of(X[i]); }
+        f1.resize(m); f2.resize(m); cv.resize(m);
+        for (int i = 0; i < m; ++i) {
+            if (cnc) {
+                f1[i] = Y(i, ff);
+                f2[i] = -mrr_of(X[i]);
+                cv[i] = max(0.0, (double)fabs(Y(i, ok) - target) - (double)band);
+            } else {
+                f1[i] = fabs(Y(i, ok) - target);
+                f2[i] = 0.0;
+                cv[i] = 0.0;
+            }
+        }
     };
-    auto dominates = [](double a1, double a2, double b1, double b2) {
+    // Deb's constrained domination: a feasible point beats an infeasible one; among two
+    // infeasible, less violation wins; among two feasible (equal cv), Pareto on the objectives.
+    auto dominates = [](double a1, double a2, double acv, double b1, double b2, double bcv) {
+        if (acv != bcv) return acv < bcv;
         return a1 <= b1 && a2 <= b2 && (a1 < b1 || a2 < b2);
     };
     // fast non-dominated sort -> rank per index
-    auto nds = [&](const vector<double>& f1, const vector<double>& f2, vector<int>& rank) {
+    auto nds = [&](const vector<double>& f1, const vector<double>& f2, const vector<double>& cv, vector<int>& rank) {
         const int m = (int)f1.size();
         rank.assign(m, 0);
         vector<vector<int>> S(m); vector<int> n(m, 0); vector<int> F;
         for (int p = 0; p < m; ++p) {
             for (int q = 0; q < m; ++q) if (p != q) {
-                if (dominates(f1[p], f2[p], f1[q], f2[q])) S[p].push_back(q);
-                else if (dominates(f1[q], f2[q], f1[p], f2[p])) n[p]++;
+                if (dominates(f1[p], f2[p], cv[p], f1[q], f2[q], cv[q])) S[p].push_back(q);
+                else if (dominates(f1[q], f2[q], cv[q], f1[p], f2[p], cv[p])) n[p]++;
             }
             if (n[p] == 0) { rank[p] = 0; F.push_back(p); }
         }
@@ -188,11 +202,11 @@ static MatrixR nsga2_repair(NeuralNetwork& net, NetworkDifferential& diff,
     vector<VectorR> pop(P);
     { MatrixR X0 = opt.calculate_random_inputs(dom, P);
       for (int i = 0; i < P; ++i) { VectorR x = X0.row(i).transpose(); repair_x(x, lo, up, simplex); pop[i] = x; } }
-    vector<double> f1, f2; eval_pop(pop, f1, f2);
+    vector<double> f1, f2, cv; eval_pop(pop, f1, f2, cv);
     long evals = P;
 
     vector<int> rank(P); vector<double> cd(P, 0);
-    nds(f1, f2, rank);
+    nds(f1, f2, cv, rank);
     { vector<int> all(P); for (int i=0;i<P;++i) all[i]=i; crowding(all, f1, f2, cd); }
 
     auto better = [&](int a, int b) {                       // crowded-comparison operator
@@ -228,13 +242,14 @@ static MatrixR nsga2_repair(NeuralNetwork& net, NetworkDifferential& diff,
             repair_x(c1, lo, up, simplex); repair_x(c2, lo, up, simplex);
             Q[i] = c1; if (i+1 < P) Q[i+1] = c2;
         }
-        vector<double> qf1, qf2; eval_pop(Q, qf1, qf2); evals += P;
+        vector<double> qf1, qf2, qcv; eval_pop(Q, qf1, qf2, qcv); evals += P;
 
         // combine parents + offspring, elitist truncation to P
         vector<VectorR> Rp = pop; Rp.insert(Rp.end(), Q.begin(), Q.end());
         vector<double> rf1 = f1; rf1.insert(rf1.end(), qf1.begin(), qf1.end());
         vector<double> rf2 = f2; rf2.insert(rf2.end(), qf2.begin(), qf2.end());
-        vector<int> rrank; nds(rf1, rf2, rrank);
+        vector<double> rcv = cv; rcv.insert(rcv.end(), qcv.begin(), qcv.end());
+        vector<int> rrank; nds(rf1, rf2, rcv, rrank);
         const int M = (int)Rp.size();
         vector<double> rcd(M, 0);
         // group by rank
@@ -248,10 +263,10 @@ static MatrixR nsga2_repair(NeuralNetwork& net, NetworkDifferential& diff,
             sort(fr.begin(), fr.end(), [&](int a, int b){ return rcd[a] > rcd[b]; });
             for (int i : fr) { if ((int)sel.size() >= P) break; sel.push_back(i); }
         }
-        vector<VectorR> np(P); vector<double> nf1(P), nf2(P);
-        for (int i = 0; i < P; ++i) { np[i]=Rp[sel[i]]; nf1[i]=rf1[sel[i]]; nf2[i]=rf2[sel[i]]; }
-        pop.swap(np); f1.swap(nf1); f2.swap(nf2);
-        nds(f1, f2, rank);
+        vector<VectorR> np(P); vector<double> nf1(P), nf2(P), ncv(P);
+        for (int i = 0; i < P; ++i) { np[i]=Rp[sel[i]]; nf1[i]=rf1[sel[i]]; nf2[i]=rf2[sel[i]]; ncv[i]=rcv[sel[i]]; }
+        pop.swap(np); f1.swap(nf1); f2.swap(nf2); cv.swap(ncv);
+        nds(f1, f2, cv, rank);
         { vector<int> all(P); for (int i=0;i<P;++i) all[i]=i; crowding(all, f1, f2, cd); }
     }
     evals_out = evals;
@@ -418,12 +433,13 @@ int main(int argc, char** argv)
     {
         auto t0 = Clock::now();
         VectorR lo = domain.inferior_frontier, up = domain.superior_frontier;
+        const Index ff_nsga = out_index(out_vars, "F");
         const int P = 100;
         const int G = max(1, (int)(BUDGET / P) - 1);   // ~ equal total eval budget
         long ev = 0;
         MatrixR X;
-        try { X = nsga2_repair(net, diff, opt, domain, n_in, n_out, ok, target,
-                               C.simplex, lo, up, span, P, G, ev); }
+        try { X = nsga2_repair(net, opt, domain, n_in, n_out, ok, ff_nsga, target, band,
+                               /*cnc=*/!C.simplex, C.simplex, lo, up, P, G, ev); }
         catch (const exception& e) { cout << "  [nsga2 failed: " << e.what() << "]\n"; }
         MatrixR Xf(0, n_in);
         double sres = 0;
