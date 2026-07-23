@@ -34,29 +34,35 @@ the weights live. Copying only the `.json` loads uninitialized weights (constant
 - Minor: one V fraction dips to −0.006 (box lower bound slightly <0); physically ≈0.
   TODO if wanted: add x_i ≥ 0 formula constraints to clamp.
 
-## Baselines (honest: SAME repair given to the baselines)  -> out/baselines_{cnc,hea}.csv
-Equal-ish eval budget (48000), identical feasibility test (output band + simplex).
+## Baselines (honest: SAME repair given to ALL baselines)  -> out/baselines_{cnc,hea}.csv
+Equal eval budget (48000), identical feasibility test (output band + simplex). 4 methods.
 
-| method | repair | CNC feas% | CNC meanS/minS | HEA feas% | HEA simplex resid | HEA meanS/minS |
-|---|---|---|---|---|---|---|
-| reject_norepair | no | 7.8% | 0.62 / 0.055 | 0% | 0.99 | - |
-| reject_repair   | yes | 22.9% | 0.75 / 0.077 | 3.0% | 0.000 | 1092 / 319 |
-| ours_iterative  | yes | 5.7% | 0.44 / 0.185 | ~6 pts | 0.000 | 771 / 477 |
+| method | repair | CNC feas% | CNC fill% | CNC minS | HEA feas% | HEA simplex | HEA minS |
+|---|---|---|---|---|---|---|---|
+| reject_norepair | no  | 7.8%  | 99.9%  | 0.055 | 0%   | 0.99  | -   |
+| reject_repair   | yes | 22.9% | 99.98% | 0.077 | 3.0% | 0.000 | 319 |
+| ours_iterative  | yes | 5.7%  | 95.2%  | 0.185 | 6 pts| 0.000 | 477 |
+| nsga2_repair    | yes | 0.2%  | 32.6%  | 0.022 | 73pts| 0.000 | 111 |
 
-Honest findings:
+Honest findings (none is "we dominate"):
 1. Repair is the decisive enabler: without it the HEA simplex is unsolvable by sampling
-   (0% feasible, residual 0.99); with the SAME repair it is satisfied exactly (0.000).
-2. For pure single-target COVERAGE, one-shot repaired rejection covers as well or better
-   than our iterative contraction (which converges/concentrates, not covers).
-3. Our method's real value: on-average more robust returned set (CNC meanS 0.44 vs 0.75),
-   MIXED-SENSE (min F / max MRR along the fixed-Ra band, which rejection does not optimize),
-   and robustness SELECTION: from the same repaired feasible set, get_robust_point picks
-   minS (CNC 0.077 vs typical 0.75 ~10x; HEA 319 vs 1092 ~3.4x).
+   (0% feasible, residual 0.99); with the SAME repair it is satisfied EXACTLY (0.000) by all.
+   The repair operator is shared machinery from the companion (new_IDC), NOT novel here.
+2. Coverage <-> robustness trade-off: reject_repair covers best (fill 99.98%, highest feas);
+   NSGA-II (optimizes S) finds the MOST ROBUST design (minS 0.022 CNC / 111 HEA) but covers
+   worst (fill 32%/4%); ours (contraction) is in between.
+3. Our value = the UNIFIED inverse-problem framework: recover the whole fixed-target manifold
+   + mixed senses (min F / max MRR along the band) + robustness selection, in one derivative-
+   free pass. Baselines each solve only one axis (coverage OR a robust optimum).
 
-Notes: ours trips OpenNN's feasibility-ratio guard on the tight simplex unless
-set_min_feasible_ratio is lowered (done, 1e-4). NSGA-II with the same repair is the
-remaining baseline (future work); expected to behave like a more sample-efficient
-repaired sampler.
+NSGA-II: real-coded, SBX + polynomial mutation, fast-non-dominated-sort + crowding,
+bi-objective (closeness, S), same repair (closed-form simplex projection) each generation.
+
+## Build note (refactor-immune)
+The upstream OpenNN refactor moved HEAD (5598487e3 -> 454232b74) and rebuilt/reorganized
+the lib+headers mid-work. The companion is now SELF-CONTAINED: rerun/_vendor/ holds the
+5598487e3 headers (tracked) + a lib built at that commit via `git worktree` + Eigen
+(both gitignored). CMake points only at _vendor; nothing depends on the live source.
 
 ## Manuscript
 paper/manuscript.pdf (10 pages) - includes the honest baselines section (Sec 5) with

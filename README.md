@@ -35,16 +35,33 @@ adaptive width search) over the corresponding `benchmark_datasets` entries.
 > Note: `*.json` holds the architecture; the weights live in the sibling `*.bin`
 > (same basename). Keep them together or the net loads with uninitialized weights.
 
-## Build & run (Windows / MSVC)
-Requires OpenNN, pinned to commit **5598487e3** (branch `dev`), prebuilt under
-`build-ninja`. Point CMake at your checkout if needed:
+## OpenNN dependency (vendored, pinned)
+The experiments are pinned to **OpenNN commit 5598487e3**. Because the upstream tree is
+under active refactor, the build is made self-contained via `rerun/_vendor/`:
+- `_vendor/opennn/` public headers at that commit (committed, small);
+- `_vendor/eigen/`  Eigen headers (gitignored, regenerable);
+- `_vendor/lib/`    `opennn.lib` + `zs.lib` + `jpeg-static.lib` (gitignored, ~190 MB).
+
+To regenerate the gitignored binaries on another machine, build OpenNN at the pinned
+commit and copy the outputs into `_vendor/`:
 ```
-cmake -S rerun -B rerun/build -G "Visual Studio 17 2022" -A x64 ^
-      -DOPENNN_ROOT=C:/path/to/opennn -DOPENNN_BUILD=C:/path/to/opennn/build-ninja
+git -C <opennn-repo> worktree add <build-src> 5598487e3
+cmake -S <build-src> -B <build-src>/build -G "Visual Studio 17 2022" -A x64 ^
+      -DOpenNN_BUILD_EXAMPLES=OFF -DOpenNN_BUILD_TESTS=OFF -DOpenNN_ENABLE_LTO=OFF
+cmake --build <build-src>/build --config Release --target opennn
+# copy opennn.lib, zs.lib, jpeg-static.lib -> rerun/_vendor/lib/
+# copy <build>/_deps/eigen-src/{Eigen,unsupported} -> rerun/_vendor/eigen/
+```
+
+## Build & run (Windows / MSVC)
+```
+cmake -S rerun -B rerun/build -G "Visual Studio 17 2022" -A x64
 cmake --build rerun/build --config Release
 cd rerun
 ./build/Release/case_a_cnc.exe        # writes out/cnc_*.csv
 ./build/Release/case_b_hea.exe        # writes out/hea_manifold.csv
+./build/Release/baselines.exe cnc     # honest baselines (reject +/- repair, ours, NSGA-II)
+./build/Release/baselines.exe hea
 ```
 
 ## Figures

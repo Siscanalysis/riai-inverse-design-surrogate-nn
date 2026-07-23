@@ -66,13 +66,16 @@ diseno inverso \sep optimizacion de respuesta \sep redes neuronales sustitutas
 La cadena habitual del diseno industrial guiado por datos entrena un modelo
 sustituto $f:\mathbb{R}^p\to\mathbb{R}^q$ (a menudo una red neuronal) sobre
 medidas experimentales o de simulacion, y despues busca condiciones de operacion
-que optimicen una o varias salidas. En trabajos previos abordamos esta busqueda
-con estrategias sin derivadas que explotan el bajo coste de evaluar la red y
-proyectan las muestras sobre las restricciones antes de evaluarlas, garantizando
-la factibilidad por construccion.
+que optimicen una o varias salidas. En un trabajo companion abordamos esta busqueda
+como \emph{optimizacion de respuesta}, con estrategias sin derivadas que explotan el
+bajo coste de evaluar la red y proyectan (reparan) las muestras sobre las
+restricciones antes de evaluarlas, garantizando la factibilidad por construccion
+\citep{scala2026idc}. El operador de reparacion de restricciones es maquinaria comun
+de esa linea; en este trabajo lo reutilizamos y no lo reclamamos como aportacion.
 
-Ese planteamiento devuelve un unico optimo (o un frente de Pareto). Sin embargo,
-una parte importante de los problemas de ingenieria no se formula como
+Aquel planteamiento devuelve un unico optimo factible (o un frente de Pareto). Aqui
+adoptamos una perspectiva distinta, la del \emph{problema inverso}. Ademas, una
+parte importante de los problemas de ingenieria no se formula como
 ``optimizar'', sino como ``alcanzar una especificacion'': fabricar una pieza con
 un acabado superficial dado, una aleacion con una dureza dada, un proceso que
 opere a una carga dada. En estos casos el objetivo natural es una
@@ -250,22 +253,30 @@ un presupuesto comparable de evaluaciones y con un criterio de factibilidad
 identico (banda de igualdad en la salida mas la restriccion de simplex en las
 entradas), comparamos: muestreo por rechazo \emph{sin} reparacion; muestreo por
 rechazo \emph{con} reparacion (una ronda de muestreo, reparacion afin de entradas,
-reparacion de la salida y filtrado, exactamente los mismos operadores); y nuestro
-metodo iterativo con contraccion del dominio. La Tabla~\ref{tab:base} resume los
-resultados y la Figura~\ref{fig:base_feas} los ilustra.
+reparacion de la salida y filtrado, exactamente los mismos operadores); nuestro
+metodo iterativo con contraccion del dominio; y un algoritmo evolutivo (NSGA-II, con
+codificacion real, cruce SBX y mutacion polinomica) dotado del \emph{mismo} operador
+de reparacion en cada generacion. Todas las lineas base reciben el mismo sustituto
+congelado, las mismas restricciones y el mismo presupuesto de evaluaciones. La
+Tabla~\ref{tab:base} resume los resultados y las Figuras~\ref{fig:base_feas}
+y~\ref{fig:base_trade} los ilustran.
 
 \begin{table}[t]
 \centering
-\caption{Comparacion con la misma reparacion. Factibilidad = fraccion de
-evaluaciones que cae en la banda de igualdad (y satisface el simplex en HEA).}
+\caption{Comparacion con la misma reparacion, mismo presupuesto de evaluaciones
+($4.8\times10^4$) y criterio de factibilidad identico (banda de igualdad y simplex).
+Cobertura = relleno medio del dominio por las soluciones factibles; robustez = menor
+$S$ alcanzado (menor es mejor). Caso CNC; la HEA se comenta en el texto y la
+Figura~\ref{fig:base_trade}.}
 \label{tab:base}
 \begin{tabular}{lcccc}
 \toprule
-Metodo & Reparacion & CNC fact. & HEA fact. & HEA $|\!\sum x-1|$ \\
+Metodo & Reparacion & Factib. & Cobertura & Robustez min $S$ \\
 \midrule
-Rechazo          & no & 7.8\% & \textbf{0\%} & 0.99 \\
-Rechazo          & si & \textbf{22.9\%} & 3.0\% & \textbf{0.000} \\
-Nuestro (iterativo) & si & 5.7\% & pocos & 0.000 \\
+Rechazo          & no & 7.8\%  & 99.9\%  & 0.055 \\
+Rechazo          & si & \textbf{22.9\%} & \textbf{99.98\%} & 0.077 \\
+Nuestro (iterativo) & si & 5.7\%  & 95.2\%  & 0.185 \\
+NSGA-II          & si & 0.2\%  & 32.6\%  & \textbf{0.022} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -279,37 +290,42 @@ reparacion se satisface de forma exacta.}
 \label{fig:base_feas}
 \end{figure}
 
-De aqui extraemos tres conclusiones \emph{honestas}. Primera, la reparacion es el
-factor decisivo: sin ella la restriccion de simplex de la HEA es inviable por
-muestreo (0\% de factibilidad, residuo medio $0.99$), mientras que con ella se
-satisface de forma exacta ($|\sum x-1|=0$). Segunda, para la \emph{mera cobertura}
-de la variedad de un objetivo fijo, el rechazo reparado de una sola ronda cubre
-tanto o mas que nuestra contraccion iterativa (22.9\% frente a 5.7\% en CNC): la
-contraccion esta disenada para \emph{converger}, no para cubrir, y concentra las
-soluciones en una subregion. Tercera, la aportacion propia del metodo esta en otro
-lugar: sus soluciones son en promedio mas robustas (sensibilidad media $0.44$
-frente a $0.75$ en CNC), maneja \emph{sentidos mixtos} que el rechazo no optimiza
-(minimizar $F$ y maximizar la MRR sobre la banda, Seccion~\ref{sec:cnc}) y, sobre
-todo, la \emph{seleccion por robustez} extrae del mismo conjunto factible reparado
-el diseno mas robusto, con una sensibilidad muy inferior a la de una solucion
-factible tipica (Figura~\ref{fig:base_rob}: $S$ de $0.75$ a $0.077$ en CNC, de
-$1092$ a $319$ en HEA).
+De aqui extraemos conclusiones \emph{honestas}, y ninguna consiste en que un metodo
+domine a los demas. Primera, la reparacion es el factor decisivo de factibilidad:
+sin ella la restriccion de simplex de la HEA es inviable por muestreo (0\% de
+factibilidad, residuo medio $0.99$), mientras que con ella se satisface de forma
+exacta ($|\sum x-1|=0$) en todos los metodos (Figura~\ref{fig:base_feas}). El
+operador de reparacion no es una aportacion de este trabajo: procede de la linea de
+trabajo companion sobre optimizacion de respuesta \citep{scala2026idc}, y aqui lo
+damos por igual a todas las lineas base para que la comparacion sea limpia. Segunda,
+existe un compromiso claro entre \emph{cobertura} de la variedad y \emph{robustez}
+del mejor punto (Tabla~\ref{tab:base}, Figura~\ref{fig:base_trade}): el rechazo
+reparado cubre mejor la variedad (relleno $99.98\%$, mayor factibilidad), mientras
+que NSGA-II, que optimiza explicitamente la sensibilidad, encuentra el diseno mas
+robusto (menor $S$: $0.022$ en CNC, $111$ en HEA) pero cubre mal la variedad
+(relleno $32\%$ y $4\%$). Nuestra contraccion iterativa queda en un punto intermedio.
+Tercera, el valor del planteamiento no esta en ganar un eje concreto sino en ofrecer,
+en una unica pasada sin derivadas, la \emph{variedad completa} de un objetivo fijado,
+el manejo de \emph{sentidos mixtos} (minimizar $F$ y maximizar la MRR sobre la banda,
+Seccion~\ref{sec:cnc}) y una \emph{seleccion por robustez} que extrae de la variedad
+cubierta un diseno robusto sin una optimizacion aparte; las lineas base, en cambio,
+resuelven cada una un solo eje (cobertura \emph{o} un optimo robusto).
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\linewidth]{fig_baselines_robustness.pdf}
-\caption{Ganancia de la seleccion por robustez sobre el mismo conjunto factible
-reparado: de una solucion factible tipica (sensibilidad media) al diseno
-seleccionado (sensibilidad minima).}
-\label{fig:base_rob}
+\includegraphics[width=0.98\linewidth]{fig_baselines_tradeoff.pdf}
+\caption{Compromiso cobertura--robustez con la misma reparacion y presupuesto: el
+rechazo reparado maximiza la cobertura; NSGA-II (que optimiza $S$) alcanza la mejor
+robustez pero cubre poco; nuestro metodo queda en medio y aporta ademas la seleccion.}
+\label{fig:base_trade}
 \end{figure}
 
 En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
-variedad de un objetivo unico; el valor de nuestro planteamiento es la reparacion
-que hace factible el problema, el manejo de objetivos de sentido mixto y la
-seleccion por robustez. La comparacion con un algoritmo evolutivo (NSGA-II) dotado
-del mismo operador de reparacion queda como trabajo en curso, y se espera que se
-comporte como un muestreador reparado mas eficiente en muestras.
+variedad de un objetivo unico, y NSGA-II con la misma reparacion es fuerte para el
+optimo robusto aislado; el valor de nuestro planteamiento como \emph{problema
+inverso} es unificar la recuperacion de la variedad, los sentidos mixtos y la
+seleccion por robustez sobre modelos sustitutos reparados, reportando con
+transparencia donde cada linea base es preferible.
 
 \section{Conclusiones}
 \label{sec:conclusiones}
@@ -323,9 +339,12 @@ de la Seccion~\ref{sec:baselines}, que dota a las lineas base de la misma
 reparacion, deja claro que la reparacion es el factor decisivo de factibilidad y
 que la aportacion propia del metodo son los objetivos de sentido mixto y la
 seleccion por robustez; para la mera cobertura de un objetivo unico, el rechazo
-reparado es una linea base simple y competitiva. El trabajo futuro incluye la
-linea base evolutiva (NSGA-II) con la misma reparacion, la extension a bandas de
-especificacion y a objetivos de igualdad multiples.
+reparado es una linea base simple y competitiva, y un evolutivo (NSGA-II) con la misma
+reparacion alcanza el mejor optimo robusto aislado. Ningun metodo domina: existe un
+compromiso cobertura--robustez que reportamos con transparencia. El trabajo futuro
+incluye ampliar el panel de lineas base (metaheuristicas y programacion no lineal con
+presupuesto compartido, como en la linea companion), la extension a bandas de
+especificacion y a objetivos de igualdad multiples simultaneos.
 
 \section*{Reproducibilidad}
 El codigo, los modelos sustitutos y los datos que reproducen las dos figuras y
@@ -333,6 +352,11 @@ todas las cifras estan disponibles en el repositorio companion (directorio
 \texttt{rerun/}), construido sobre la biblioteca OpenNN.
 
 \begin{thebibliography}{9}
+\bibitem[Scala y Lopez(2026)]{scala2026idc}
+Scala, S., Lopez, R., 2026. Una jerarquia de reparacion de restricciones para la
+optimizacion factible por construccion sobre redes neuronales sustitutas. Manuscrito
+companion (optimizacion de respuesta).
+
 \bibitem[Canal y Borille(2022)]{canal2022}
 Canal, G., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
 (AISI 304). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.

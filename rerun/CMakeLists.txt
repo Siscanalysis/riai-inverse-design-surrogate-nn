@@ -14,27 +14,28 @@ if(MSVC)
     add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS)
 endif()
 
-# OpenNN dependency, PINNED for reproducibility to commit 5598487e3 (branch dev).
-# The public headers at that commit are VENDORED under _vendor/opennn/ so the build is
-# immune to the ongoing refactor of the live source tree. We still link the prebuilt
-# static library (built from the same commit) and reuse its own Eigen copy (to avoid the
-# two-Eigen COMDAT mix). Override the build dir if your matching-commit build lives
-# elsewhere:  cmake -S . -B build -DOPENNN_BUILD=/path/to/opennn/build-ninja
-set(OPENNN_BUILD "C:/Users/Artelnics/Documents/opennn/build-ninja" CACHE PATH "OpenNN build dir with the commit-5598487e3 static lib")
-set(OPENNN_VENDOR "${CMAKE_CURRENT_SOURCE_DIR}/_vendor")
+# OpenNN dependency, fully VENDORED for reproducibility and to be immune to the ongoing
+# refactor of the live source tree. _vendor/ holds a consistent snapshot:
+#   _vendor/opennn/  public headers (committed; small)
+#   _vendor/eigen/   Eigen headers (gitignored; regenerable)
+#   _vendor/lib/     opennn.lib + zs.lib + jpeg-static.lib (gitignored; ~190 MB)
+# The snapshot corresponds to OpenNN commit 5598487e3 (the commit these experiments were
+# written and validated against). To regenerate on another machine: build OpenNN at that
+# commit (e.g. via `git worktree add <dir> 5598487e3`) and copy opennn.lib + the *.h headers
+# + Eigen into _vendor (see README):
+set(OPENNN_VENDOR "${CMAKE_CURRENT_SOURCE_DIR}/_vendor" CACHE PATH "Vendored OpenNN snapshot")
 
 find_package(OpenMP)
 
 set(_riai_common_includes
-    ${OPENNN_VENDOR}                 # pinned "opennn/*.h" headers (commit 5598487e3)
+    ${OPENNN_VENDOR}                 # resolves "opennn/*.h"
     ${OPENNN_VENDOR}/opennn
-    ${OPENNN_BUILD}                  # build-generated headers matching the lib
-    ${OPENNN_BUILD}/_deps/eigen-src)
+    ${OPENNN_VENDOR}/eigen)          # vendored Eigen (single copy, no two-Eigen mix)
 
 set(_riai_common_libs
-    ${OPENNN_BUILD}/opennn/opennn.lib
-    ${OPENNN_BUILD}/_deps/opennn_zlib-build/zs.lib
-    ${OPENNN_BUILD}/_deps/opennn_libjpeg_turbo-install/lib/jpeg-static.lib)
+    ${OPENNN_VENDOR}/lib/opennn.lib
+    ${OPENNN_VENDOR}/lib/zs.lib
+    ${OPENNN_VENDOR}/lib/jpeg-static.lib)
 
 function(riai_add name src)
     add_executable(${name} ${src})

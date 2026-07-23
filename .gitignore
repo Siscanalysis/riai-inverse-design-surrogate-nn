@@ -1,5 +1,9 @@
 # build artifacts
 rerun/build/
+
+# vendored OpenNN binaries + Eigen (large, regenerable; headers under _vendor/opennn ARE tracked)
+rerun/_vendor/lib/
+rerun/_vendor/eigen/
 **/CMakeCache.txt
 **/CMakeFiles/
 
