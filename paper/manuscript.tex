@@ -53,7 +53,9 @@ restriccion de simplex es inviable por muestreo) y que la aportacion propia del
 metodo son los objetivos de sentido mixto y la seleccion por robustez; con el mismo
 presupuesto de evaluaciones, nuestro metodo iguala a los mejores optimizadores de
 proposito general en el objetivo escalar y ademas devuelve, en la misma pasada, la
-variedad completa y su ordenacion por robustez.
+variedad completa y su ordenacion por robustez. La variedad que recupera es, ademas, la
+que menos extrapola el sustituto: se mantiene mas cerca de los datos de entrenamiento que
+las de las lineas base.
 \end{abstract}
 
 \begin{keyword}
@@ -246,9 +248,8 @@ restriccion afin). La variedad es diversa: cada fraccion recorre entre el 44\% y
 el 99\% de su rango admisible (Figura~\ref{fig:hea_parallel}), lo que muestra que
 existen familias de aleaciones muy distintas con la misma dureza. Sobre ese
 conjunto, la robustez de la ecuacion~\eqref{eq:sens} separa las composiciones
-poco sensibles a la variacion de composicion de las muy sensibles
-(Figura~\ref{fig:hea_proj}), y la seleccion centralidad--robustez recomienda la
-aleacion mas manufacturable.
+poco sensibles a la variacion de composicion de las muy sensibles, y la seleccion
+centralidad--robustez recomienda la aleacion mas manufacturable.
 
 \begin{figure}[t]
 \centering
@@ -257,14 +258,6 @@ aleacion mas manufacturable.
 paralelas sobre las diez fracciones atomicas (suma uno). El color codifica la
 robustez $S$; las trayectorias oscuras son las aleaciones mas robustas.}
 \label{fig:hea_parallel}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.68\linewidth]{fig_hea_projection.pdf}
-\caption{Caso B. Proyeccion de la variedad sobre las dos fracciones de mayor
-varianza, coloreada por robustez.}
-\label{fig:hea_proj}
 \end{figure}
 
 \section{Comparacion honesta con lineas base}
@@ -280,8 +273,7 @@ metodo iterativo con contraccion del dominio; y un algoritmo evolutivo (NSGA-II,
 codificacion real, cruce SBX y mutacion polinomica) dotado del \emph{mismo} operador
 de reparacion en cada generacion. Todas las lineas base reciben el mismo sustituto
 congelado, las mismas restricciones y el mismo presupuesto de evaluaciones. La
-Tabla~\ref{tab:base} resume los resultados y las Figuras~\ref{fig:base_feas}
-y~\ref{fig:base_trade} los ilustran.
+Tabla~\ref{tab:base} resume los resultados y la Figura~\ref{fig:base_trade} los ilustra.
 
 \paragraph{Protocolo} El presupuesto es de $1.2\times10^4$ evaluaciones del sustituto
 para todos los metodos, contado con el numero real de propagaciones directas (incluidas
@@ -317,20 +309,11 @@ NSGA-II          & si & 0.8\%  & 6.5\%   & \textbf{0.040} \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{fig_baselines_feasibility.pdf}
-\caption{Factibilidad con la misma reparacion. Sin reparacion, la restriccion de
-simplex de la HEA es practicamente inviable por muestreo (0\%); con la misma
-reparacion se satisface de forma exacta.}
-\label{fig:base_feas}
-\end{figure}
-
 De aqui extraemos conclusiones \emph{honestas}, y ninguna consiste en que un metodo
 domine a los demas. Primera, la reparacion es el factor decisivo de factibilidad:
 sin ella la restriccion de simplex de la HEA es inviable por muestreo (0\% de
 factibilidad, residuo medio $0.99$), mientras que con ella se satisface de forma
-exacta ($|\sum x-1|=0$) en todos los metodos (Figura~\ref{fig:base_feas}). El
+exacta ($|\sum x-1|=0$) en todos los metodos (Tabla~\ref{tab:base}). El
 operador de reparacion no es una aportacion de este trabajo: procede de la linea de
 trabajo companion sobre optimizacion de respuesta \citep{scala2026idc}, y aqui lo
 damos por igual a todas las lineas base para que la comparacion sea limpia. Segunda,
@@ -350,7 +333,7 @@ resuelven cada una un solo eje (cobertura \emph{o} un optimo robusto).
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\linewidth]{fig_baselines_tradeoff.pdf}
+\includegraphics[width=0.80\linewidth]{fig_baselines_tradeoff.pdf}
 \caption{Compromiso cobertura--robustez con la misma reparacion y presupuesto: el
 rechazo reparado maximiza la cobertura; NSGA-II (que optimiza $S$) alcanza la mejor
 robustez pero cubre poco; nuestro metodo queda en medio y aporta ademas la seleccion.}
@@ -397,6 +380,35 @@ CMA-ES              & 114.8 \\
 \end{tabular}
 \end{table}
 
+\paragraph{Riesgo de extrapolacion de la variedad completa} La discusion de la
+Seccion~\ref{sec:robustez} sugiere una pregunta que podemos medir sobre \emph{todas}
+las soluciones devueltas, no solo sobre el punto seleccionado: ?`que metodo produce una
+variedad que se apoya menos en el borde del soporte de entrenamiento, donde el sustituto
+extrapola? Para cada punto factible medimos su margen a las paredes de la caja
+(centralidad) y su distancia al dato de entrenamiento mas cercano, normalizada por rango
+(Figura~\ref{fig:extrap}). En la CNC, NSGA-II es el mas expuesto con diferencia: al
+optimizar la robustez del sustituto empuja los disenos contra las paredes ($100\%$ de sus
+puntos con margen $<0.1$ y la mayor distancia media al dato, $0.29$). El rechazo, con o
+sin reparacion, deja un $22$--$31\%$ de puntos pegados al borde. Nuestra contraccion es la
+mas prudente: solo un $6\%$ de puntos cerca del borde y la \emph{menor} distancia media al
+dato de entrenamiento ($0.15$ frente a $0.18$--$0.29$); en la HEA se repite el orden por
+distancia al dato (nuestro $0.16$, rechazo reparado $0.23$, NSGA-II $0.24$). Es decir, la
+variedad que recuperamos no solo cumple la especificacion, sino que se mantiene en el
+interior bien muestreado del dominio, donde la prediccion del sustituto es mas fiable. La
+contrapartida honesta es que es una variedad mas pequena y concentrada (menor cobertura,
+Tabla~\ref{tab:base}): compramos seguridad frente a extrapolacion a cambio de amplitud.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{fig_extrapolation_cnc.pdf}
+\caption{Distribucion (CDF) sobre \emph{toda} la variedad factible de la CNC. Izquierda:
+centralidad (margen a la pared); mas a la derecha es mas seguro. Derecha: distancia al
+dato de entrenamiento mas cercano; mas a la izquierda es mas seguro. Nuestra variedad
+(rojo) se concentra en el interior y cerca de los datos; NSGA-II (verde) se apoya en las
+paredes y se aleja de los datos.}
+\label{fig:extrap}
+\end{figure}
+
 En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
 variedad de un objetivo unico, NSGA-II con la misma reparacion es fuerte para el
 optimo robusto aislado, y en la optimizacion de sentido mixto nuestro metodo iguala a
@@ -405,7 +417,9 @@ supera al muestreo, a GA y a CMA-ES; el valor del planteamiento como \emph{probl
 inverso} no reside en ganar un eje aislado, sino en unificar en una sola pasada la
 recuperacion de la variedad, los sentidos mixtos y la seleccion por robustez sobre
 modelos sustitutos reparados, reportando con transparencia donde cada linea base es
-preferible.
+preferible. A esto se anade una propiedad favorable de la variedad completa: es la que
+menos se apoya en el borde del soporte de entrenamiento, es decir, la mas prudente frente
+a la extrapolacion del sustituto (Figura~\ref{fig:extrap}).
 
 \section{Conclusiones}
 \label{sec:conclusiones}
@@ -421,15 +435,19 @@ que la aportacion propia del metodo son los objetivos de sentido mixto y la
 seleccion por robustez; para la mera cobertura de un objetivo unico, el rechazo
 reparado es una linea base simple y competitiva, y un evolutivo (NSGA-II) con la misma
 reparacion alcanza el mejor optimo robusto aislado. Ningun metodo domina: existe un
-compromiso cobertura--robustez que reportamos con transparencia. El trabajo futuro
+compromiso cobertura--robustez que reportamos con transparencia, con la particularidad de
+que nuestra variedad es la que menos extrapola el sustituto (se mantiene mas cerca de los
+datos de entrenamiento). El trabajo futuro
 incluye ampliar el panel de lineas base (metaheuristicas y programacion no lineal con
 presupuesto compartido, como en la linea companion), la extension a bandas de
 especificacion y a objetivos de igualdad multiples simultaneos.
 
 \section*{Reproducibilidad}
-El codigo, los modelos sustitutos y los datos que reproducen las dos figuras y
+El codigo, los modelos sustitutos y los datos que reproducen las figuras y
 todas las cifras estan disponibles en el repositorio companion (directorio
-\texttt{rerun/}), construido sobre la biblioteca OpenNN.
+\texttt{rerun/}), construido sobre la biblioteca OpenNN. El analisis de extrapolacion
+se obtiene con \texttt{analyze\_extrapolation.py} sobre los conjuntos factibles
+volcados por \texttt{baselines}.
 
 \begin{thebibliography}{9}
 \bibitem[Scala y Lopez(2026)]{scala2026idc}

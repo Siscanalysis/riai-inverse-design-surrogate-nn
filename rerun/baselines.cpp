@@ -334,6 +334,17 @@ int main(int argc, char** argv)
         robustness_stats(diff, Xfeas, n_in, n_out, ok, span, M.mean_S, M.min_S);
         M.seconds = secs;
         results.push_back(M);
+        // dump the feasible inputs so the extrapolation analysis (wall margin + distance to
+        // training data) can compare the WHOLE distribution per method, not just a summary.
+        {
+            ofstream fx("out/feasible_" + C.name + "_" + m + ".csv");
+            for (Index c = 0; c < n_in; ++c) fx << (c ? "," : "") << in_vars[(size_t)c].name;
+            fx << "\n";
+            for (Index r = 0; r < Xfeas.rows(); ++r) {
+                for (Index c = 0; c < n_in; ++c) fx << (c ? "," : "") << Xfeas(r, c);
+                fx << "\n";
+            }
+        }
         cout << "  " << left << setw(16) << m << right
              << "  feas=" << setw(5) << M.feasible
              << "  trueEvals=" << setw(7) << M.true_evals
