@@ -60,10 +60,11 @@ cmake --build rerun/build --config Release
 cd rerun
 ./build/Release/case_a_cnc.exe        # writes out/cnc_*.csv
 ./build/Release/case_b_hea.exe        # writes out/hea_manifold.csv
-./build/Release/baselines.exe cnc     # honest baselines (reject +/- repair, ours, NSGA-II)
+./build/Release/baselines.exe cnc     # honest baselines (reject +/- repair, ours) + feasible dumps
 ./build/Release/baselines.exe hea     # also exports models/<case>_surrogate.py for pymoo
-python pymoo_baselines.py cnc         # GA/DE/PSO/CMA-ES, same repair + budget (pymoo 0.6)
+python pymoo_baselines.py cnc         # scalar min-F panel: GA/DE/PSO/CMA-ES, same repair + budget
 python pymoo_baselines.py hea
+python analyze_extrapolation.py cnc   # extrapolation analysis + fig_extrapolation_*.pdf
 ```
 
 ## Figures
@@ -79,5 +80,5 @@ The draft uses the stock `elsarticle` class so it compiles as-is; for submission
 swap in the RIAI `ecrc_RIAI.sty` front-matter package.
 
 ## Status
-Case A and Case B are complete and reproducible. The baselines section
-(rejection sampling + NSGA-II) is pending.
+Case A, Case B, the honest baselines (rejection +/- repair, ours, pymoo scalar panel)
+and the extrapolation analysis are complete and reproducible at the 12k-eval budget.

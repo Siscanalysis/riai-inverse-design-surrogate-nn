@@ -23,9 +23,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CASE = sys.argv[1] if len(sys.argv) > 1 else "cnc"
 N_IN = {"cnc": 4, "hea": 10}[CASE]
 TRAIN = {"cnc": "cnc_multi_fulldata.csv", "hea": "hea_hardness_10elt.csv"}[CASE]
-METHODS = ["reject_norepair", "reject_repair", "ours_iterative", "nsga2_repair"]
+METHODS = ["reject_norepair", "reject_repair", "ours_iterative"]
 LABEL = {"reject_norepair": "Rechazo", "reject_repair": "Rechazo+rep",
-         "ours_iterative": "Nuestro", "nsga2_repair": "NSGA-II"}
+         "ours_iterative": "Nuestro"}
 
 def read_matrix(path, ncol):
     rows = list(csv.reader(open(path)))
