@@ -14,7 +14,7 @@ centrality** selection over the manifold.
 ```
 paper/            manuscript.tex (+ manuscript.pdf), figs/ (gen_figs.py -> PDFs)
 rerun/            reproducible experiments
-  case_a_cnc.cpp    Case A - CNC turning AISI 304 (fix Ra / min F / max MRR)
+  case_a_cnc.cpp    Case A - CNC turning AISI H13 (fix Ra / min F; MRR as trade-off)
   case_b_hea.cpp    Case B - HEA hardness on the composition simplex (fix HV)
   models/           trained surrogates: each <name>.json REQUIRES its <name>.bin sibling
   data/             the numeric CSVs the surrogates were trained on

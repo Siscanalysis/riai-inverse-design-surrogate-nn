@@ -1,4 +1,4 @@
-// RIAI Case A - CNC turning AISI 304, mixed-sense response optimization.
+// RIAI Case A - CNC turning AISI H13, mixed-sense response optimization.
 //
 // Surrogate: (cutting_speed vc, feed f, depth_of_cut ap, tool_wear_VB) -> (Ra, F).
 // MRR = vc * f * ap is analytic (exact).

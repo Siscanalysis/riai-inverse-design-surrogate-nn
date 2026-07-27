@@ -59,7 +59,7 @@ un criterio de selección que ordena las soluciones de la variedad por su
 su centralidad en el dominio. El método maneja de forma nativa restricciones de
 caja, afines (incluido el símplex composicional) y no lineales. Lo validamos en
 dos casos con datos reales y solo variables numéricas: el torneado CNC de acero
-inoxidable AISI 304 (fijar la rugosidad y recorrer el compromiso entre fuerza de corte y
+de herramienta AISI H13 (fijar la rugosidad y recorrer el compromiso entre fuerza de corte y
 tasa de arranque de material) y la dureza de aleaciones de alta
 entropía sobre el símplex de composición (fijar la dureza y recuperar la
 variedad de aleaciones factibles). En ambos casos se recupera una variedad rica
@@ -201,11 +201,11 @@ algo de robustez nominal a cambio de una predicción en la que podemos confiar. 
 selección se resuelve sobre cada variedad por separado, de modo que el punto
 equilibrado depende de la geometría concreta de $\mathcal{M}_c$.
 
-\section{Caso A: torneado CNC de AISI 304}
+\section{Caso A: torneado CNC de AISI H13}
 \label{sec:cnc}
 
 \paragraph{Datos y sustituto} Partimos de una campaña factorial replicada de
-torneado de acero inoxidable austenítico AISI 304 \citep{canal2022}. Las
+torneado de acero de herramienta AISI H13 \citep{canal2022}. Las
 variables de decisión (numéricas) son la velocidad de corte $v_c$, el avance $f$
 y la profundidad de pasada $a_p$, junto con el estado de desgaste de la
 herramienta $VB$ tratado como variable numérica. Las respuestas son la rugosidad
@@ -268,7 +268,7 @@ simultáneamente $R_a$ y $F$ se recupera la intersección de ambas variedades
 \label{sec:hea}
 
 \paragraph{Datos y sustituto} El segundo caso usa una tabla pública de dureza
-Vickers de aleaciones de alta entropía \citep{wen2019}. Las entradas son las diez
+Vickers de aleaciones de alta entropía \citep{yang2022}. Las entradas son las diez
 fracciones atómicas (Al, Co, Cr, Cu, Fe, Mn, Mo, Ni, Ti, V), que suman uno, y la
 salida es la dureza $HV$. El sustituto alcanza $R^2\approx0.87$ sobre 370
 aleaciones. La composición impone la restricción afín de \emph{símplex}
@@ -551,8 +551,8 @@ Blank, J., Deb, K., 2020. pymoo: Multi-objective optimization in Python. IEEE
 Access 8, 89497--89509. DOI 10.1109/ACCESS.2020.2990567.
 
 \bibitem[Canal y Borille(2022)]{canal2022}
-Canal, G., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
-(AISI 304). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.
+Canal, A.~D., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
+(AISI H13). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.
 
 \bibitem[Goldberg(1989)]{goldberg1989ga}
 Goldberg, D.~E., 1989. Genetic Algorithms in Search, Optimization, and Machine
@@ -578,10 +578,10 @@ Storn, R., Price, K., 1997. Differential evolution -- a simple and efficient
 heuristic for global optimization over continuous spaces. Journal of Global
 Optimization 11 (4), 341--359. DOI 10.1023/A:1008202821328.
 
-\bibitem[Wen et al.(2019)]{wen2019}
-Wen, C., Zhang, Y., Wang, C., et al., 2019. Machine learning assisted design of
-high entropy alloys with desired property. Acta Materialia 170, 109--117.
-DOI 10.1016/j.actamat.2019.03.010.
+\bibitem[Yang et al.(2022)]{yang2022}
+Yang, C., Ren, C., Jia, Y., Wang, G., Li, M., Lu, W., 2022. A machine learning-based
+alloy design system to facilitate the rational design of high entropy alloys with
+enhanced hardness. Acta Materialia 222, 117431. DOI 10.1016/j.actamat.2021.117431.
 \end{thebibliography}
 
 \end{document}

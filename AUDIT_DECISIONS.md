@@ -86,6 +86,25 @@ robustness alpha sweep + band-width sensitivity; (e) deeper baseline discussion 
     still web-UNVERIFIED. Kept the reference; user to confirm the "cite this dataset" block on Kaggle.
   - J-3 scala2026idc: companion unpublished; add arXiv/preprint id when available.
 
+## Round 3 (2026-07-27): re-audit — deep reference check caught two real errors
+- **VERIFY pass:** all re-locked numbers re-confirmed against seeded CSVs (tab:base/mixed/exact,
+  Case A ranges + alpha-margins, Case B 183/39-99%, extrapolation 0.5%/25-31%/0.16). Accents clean
+  (0 real misses; the 2 "metodo" hits are the sec:metodo label). Citations: 9 refs, all cited/resolve,
+  no orphans, no duplicates. Compiles clean.
+- **J-4 mis-citation FIXED:** Case B cited wen2019 (Wen et al 2019, the 6-element Al-Co-Cr-Cu-Fe-Ni
+  system) for the 10-element/370-alloy hardness data. TRUE source (via dovahkiin0022/representations
+  repo README) = **Yang et al. 2022, Acta Materialia 222, 117431** (DOI 10.1016/j.actamat.2021.117431).
+  Replaced wen2019 -> yang2022 in text + bib. wen2019 now used nowhere (removed).
+- **J-6 WRONG MATERIAL FIXED (user-approved):** the CNC dataset is **AISI H13 tool steel**, NOT AISI 304
+  stainless. Confirmed from the dataset author's own repo (adorigueto/Prediction-with-ANN: "Material:
+  AISI H13 (mean hardness = 200 HV)"), variables match exactly (vc,f,ap,VB -> Ra,F). The "AISI 304"
+  label was propagated from project start. Corrected in manuscript (title, abstract, Case A, bib note),
+  README, case_a_cnc.cpp, PLAN.md. (Benchmark dataset DIR still named cnc_turning_aisi304 - external repo.)
+- **J-5 wrong initial FIXED:** first author is Andre Dorigueto Canal => "Canal, A.~D." (was "Canal, G.").
+  Borille, A.~V. correct. DOI/year kept (Kaggle version DOI; user to confirm on the Kaggle page - J-2).
+- **STILL OPEN (unchanged, need user):** G-3 emails; J-2 confirm canal2022 DOI on Kaggle;
+  J-3 scala2026idc preprint id; G-2 content expansion (planned).
+
 ## Verified-consistent (no action)
 - tab:base (CNC) matches baselines_cnc.csv: 7.6/99.8/0.055, 23.1/99.96/0.094, 4.2/78.6/0.278. (Aggregate stats; stable.)
 - tab:exact fully matches baselines_cnc_exact.csv + pymoo_cnc_exact.csv (generated this session).

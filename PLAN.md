@@ -15,7 +15,7 @@ platform upload announcing this is a Jornadas de Automática extension.
 | IDC (iterative domain contraction) | Not the focus |
 | Affine repair of LINEAR constraints | Broader: equality-target + mixed senses |
 | One optimum (SO) / Pareto front (MO) | The whole FEASIBLE SOLUTION MANIFOLD |
-| photo_wf3, yacht | CNC turning AISI 304 + (Case B: HEA/simplex or geopolymer) |
+| photo_wf3, yacht | CNC turning AISI H13 + (Case B: HEA/simplex or geopolymer) |
 | — | Jacobian ROBUSTNESS + centrality selection framework |
 | — | Mixed-sense (Minimize / Maximize / Fixed on same problem) |
 | — | Baselines: rejection sampling + NSGA-II (feasibility/diversity/robustness) |
@@ -28,7 +28,7 @@ Mixed-sense response optimization on NN surrogates:
 - robustness: S(x) = Σ_i (∂f/∂x_i · span_i)^2 (analytic Jacobian, span-weighted)
 - selection: centrality (margin to box walls) vs robustness dial, get_robust_point(front, balance)
 
-## Case A — CNC turning AISI 304  (so_realdata/Q_materials_so/cnc_turning_aisi304)
+## Case A — CNC turning AISI H13  (so_realdata/Q_materials_so/cnc_turning_aisi304)  [NOTE: dataset dir kept its old name; material is AISI H13, not 304 — see audit J-6]
 - Decision levers (numeric): cutting speed vc, feed f, depth of cut ap  (+ tool wear VB as numeric input, 0/0.1/0.3)
 - Retrain MULTI-OUTPUT surrogate: (vc,f,ap[,VB]) -> (Ra, F_resultant).  MRR = vc*f*ap analytic.
 - Mixed-sense: FIX Ra = 1.6 µm (N7 class) ; MIN F ; MAX MRR
