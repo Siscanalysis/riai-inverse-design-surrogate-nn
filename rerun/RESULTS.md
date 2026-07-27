@@ -1,5 +1,17 @@
 # RIAI rerun — results log
 
+> **SEEDED (2026-07-27):** all C++ drivers now call `opennn::set_seed(1)` at the top of main
+> => baselines + case_a are bit-deterministic (only wall-clock varies). Every manuscript number
+> was re-locked to the seed=1 run; the authoritative locked values live in
+> `../AUDIT_DECISIONS.md` (LOCKED NUMBERS). Two consequences worth flagging:
+> (1) the HEA extrapolation "win" REVERSED under the seed (ours d2train 0.253 vs reject 0.220,
+>     because ours recovers only ~3 HEA points => noise); the manuscript now DROPS that claim.
+> (2) `case_b_hea.exe` currently CRASHES at startup (0xC0000409) on the pinned vendored lib
+>     (case_a + baselines run fine same seed => case_b-specific / pre-existing). Case B numbers
+>     (170 alloys, 44-100% fill, HV~546) are kept from the committed out/hea_manifold.csv. TODO: debug.
+> The tables below still show the ORIGINAL unseeded numbers for history; trust AUDIT_DECISIONS.md.
+
+
 Build: VS2022 (bundled cmake) linking prebuilt OpenNN `build-ninja/opennn.lib`.
 `cmake -S . -B build -G "Visual Studio 17 2022" -A x64 && cmake --build build --config Release`
 Run each exe from `rerun/` (drivers use relative `models/`, `out/`).

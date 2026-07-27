@@ -26,6 +26,7 @@
 #include "opennn/response_optimization.h"
 #include "opennn/response_constraints.h"
 #include "opennn/model_expression.h"
+#include "opennn/random_utilities.h"   // set_seed: reproducible numbers for the manuscript
 
 #include <algorithm>
 #include <chrono>
@@ -99,6 +100,7 @@ static double mean_fill_of(const MatrixR& X, const ResponseOptimization::Domain&
 
 int main(int argc, char** argv)
 {
+    set_seed(1);   // fixed seed => the manuscript numbers are fully reproducible
     const string which = (argc > 1) ? argv[1] : "cnc";
     Case C;
     if (which == "hea") C = { "hea", "models/hea_10elt.json", "HV", true, 60 };

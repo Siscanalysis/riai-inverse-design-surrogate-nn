@@ -91,6 +91,14 @@ Must be compiled with `pdflatex` (plain `latex` will not work). Pending before
 submission: fill in the real author emails (`COMPLETAR@...` placeholders) and the
 volume/first-page once assigned by the journal.
 
+## Reproducibility (seed)
+The C++ drivers call `opennn::set_seed(1)` at startup, so `baselines` and `case_a_cnc` are
+bit-deterministic (only wall-clock timing varies) and every manuscript number traces to that
+run. The pymoo panel is seeded independently (`seed=1`). Known issue: `case_b_hea.exe` currently
+crashes at startup on the pinned vendored lib; Case B figures/numbers come from the committed
+`out/hea_manifold.csv`.
+
 ## Status
-Case A, Case B, the honest baselines (rejection +/- repair, ours, pymoo scalar panel)
-and the extrapolation analysis are complete and reproducible at the 12k-eval budget.
+Case A, the honest baselines (rejection +/- repair, ours, pymoo scalar + exact panels) and the
+extrapolation analysis are complete and reproducible at the 12k-eval budget under seed=1.
+Case B (HEA manifold) uses a committed artifact pending a case_b driver fix.

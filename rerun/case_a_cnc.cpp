@@ -15,6 +15,7 @@
 #include "opennn/neural_network.h"
 #include "opennn/network_differential.h"
 #include "opennn/response_optimization.h"
+#include "opennn/random_utilities.h"   // set_seed: reproducible manuscript numbers
 
 #include <algorithm>
 #include <cmath>
@@ -64,6 +65,7 @@ static vector<float> robustness(NeuralNetwork& net, const MatrixR& results,
 
 int main(int argc, char** argv)
 {
+    set_seed(1);   // fixed seed => reproducible manuscript numbers
     const filesystem::path model_path = (argc > 1) ? filesystem::path(argv[1])
                                                    : filesystem::path("models/cnc_multi.json");
     const float Ra_target = (argc > 2) ? stof(argv[2]) : 1.6f;   // N7 surface-finish class

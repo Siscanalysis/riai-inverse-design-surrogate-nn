@@ -11,6 +11,7 @@
 #include "opennn/network_differential.h"
 #include "opennn/response_optimization.h"
 #include "opennn/response_constraints.h"   // ComparisonOperator
+#include "opennn/random_utilities.h"       // set_seed: reproducible manuscript numbers
 
 #include <algorithm>
 #include <cmath>
@@ -26,6 +27,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+    set_seed(1);   // fixed seed => reproducible manuscript numbers
     const filesystem::path model_path = (argc > 1) ? filesystem::path(argv[1])
                                                    : filesystem::path("models/hea_10elt.json");
     filesystem::create_directories("out");
