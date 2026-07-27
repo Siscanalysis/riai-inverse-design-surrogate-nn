@@ -282,20 +282,25 @@ int main(int argc, char** argv)
         for (Index r = 0; r < Yu.rows(); ++r) reject_best = min(reject_best, (double)fabs(Yu(r, ok) - target));
 
         ofstream ex("out/baselines_" + C.name + "_exact.csv");
-        ex << "rel_tol,band,reject_feasible,reject_best_resid,ours_feasible,ours_best_resid,ours_true_evals\n";
+        ex << "rel_tol,band,reject_feasible,reject_fill_pct,reject_best_resid,"
+              "ours_feasible,ours_fill_pct,ours_best_resid,ours_true_evals\n";
         cout << "\n-- Exact target (no tolerance interval): solutions returned AT the target, "
-             << "12000 evals --\n";
+             << "12000 evals (fill% = diversity of the returned set) --\n";
         cout << "   " << left << setw(9) << "rel_tol" << setw(12) << "band"
-             << setw(11) << "rej_feas" << setw(13) << "rej_resid"
-             << setw(12) << "ours_feas" << setw(13) << "ours_resid" << right << "\n";
+             << setw(10) << "rej_feas" << setw(9) << "rej_fill"
+             << setw(11) << "ours_feas" << setw(10) << "ours_fill" << setw(12) << "ours_resid" << right << "\n";
         for (float tol : {1e-2f, 1e-3f, 1e-4f, 1e-5f, 1e-6f}) {
             const double band_tol = (double)tol * range;
             long rej_feas = 0;
+            vector<Index> rej_rows;
             for (Index r = 0; r < Yu.rows(); ++r) {
                 if (fabs(Yu(r, ok) - target) > band_tol) continue;
                 if (C.simplex) { double s=0; for (Index c=0;c<n_in;++c) s+=Xu(r,c); if (fabs(s-1.0) > simplex_tol) continue; }
-                ++rej_feas;
+                ++rej_feas; rej_rows.push_back(r);
             }
+            MatrixR Xrej((Index)rej_rows.size(), n_in);
+            for (size_t i = 0; i < rej_rows.size(); ++i) Xrej.row((Index)i) = Xu.row(rej_rows[i]);
+            const double rej_fill = mean_fill_of(Xrej, domain, n_in);
 
             opt.clear_objectives(); opt.clear_formula_constraints();
             if (C.simplex) {
@@ -312,12 +317,14 @@ int main(int argc, char** argv)
             catch (const exception& e) { cout << "   [ours exact tol=" << tol << " failed: " << e.what() << "]\n"; }
             double ours_best = 1e30; for (Index r = 0; r < Me.rows(); ++r) ours_best = min(ours_best, (double)fabs(Me(r, n_in+ok) - target));
             if (!Me.rows()) ours_best = 0;
+            const MatrixR Xours = (Me.rows() ? Me.leftCols(n_in).eval() : MatrixR(0, n_in));
+            const double ours_fill = mean_fill_of(Xours, domain, n_in);
             const long ev = (long)opt.get_evaluations_used();
             cout << "   " << left << setw(9) << tol << setw(12) << band_tol
-                 << setw(11) << rej_feas << setw(13) << (rej_feas ? reject_best : 0.0)
-                 << setw(12) << Me.rows() << setw(13) << ours_best << right << "\n";
-            ex << tol << "," << band_tol << "," << rej_feas << "," << (rej_feas ? reject_best : 0.0)
-               << "," << Me.rows() << "," << ours_best << "," << ev << "\n";
+                 << setw(10) << rej_feas << setw(9) << rej_fill
+                 << setw(11) << Me.rows() << setw(10) << ours_fill << setw(12) << ours_best << right << "\n";
+            ex << tol << "," << band_tol << "," << rej_feas << "," << rej_fill << "," << (rej_feas ? reject_best : 0.0)
+               << "," << Me.rows() << "," << ours_fill << "," << ours_best << "," << ev << "\n";
         }
         cout << "   (uniform sampler best single residual = " << reject_best
              << "; below that band the rejection set is empty.)\n";

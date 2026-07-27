@@ -100,14 +100,42 @@ concentrates the whole budget on the target and stays populated.
 | 1e-5 | 1.2e-5 | 2   | 1700 |
 | 1e-6 | 1.2e-6 | **0** | **877** |  <- rejection empty; ours still returns the exact-value set
 Reject best single residual floor ~9e-6 (constant, density-limited); ours residual -> ~2e-7.
-NOTE: numbers are ONE representative run (uniform sampling is unseeded/stochastic); the TREND
-(reject -> 0, ours stays populated) is robust. NOT a strawman "better optimizer than a sampler":
-set recovery IS the sampler's job, and a scalar optimizer converges to ONE point (not the
-manifold), so neither is the right tool at an exact target -- only contraction is.
-HEA: exact-target experiment is DELIBERATELY SKIPPED (if !simplex guard in baselines.cpp).
-On the 10-D simplex the exact-value manifold is measure-zero and even IDC cannot populate it at
-a vanishing band within budget (throws "infeasible after oversampling") -- claiming a win there
-would be dishonest. Manuscript: Sec 2.2 (band = collection device) + Sec 5 tab:exact + intro/concl.
+
+ALL baselines on the exact target (added per review)  -> out/pymoo_cnc_exact.csv
+`python pymoo_baselines.py cnc exact` : GA/DE/PSO/CMA-ES minimize |Ra-c| (root finding). At a
+near-exact band delta=1e-4, count DISTINCT solutions returned AT the target + their diversity
+(fill%). Reveals manifold-vs-point-vs-nothing:
+| method | #sol @1e-4 | fill% (diversity) | best resid |
+| ours (contraction) | **1700** | 44% | 6e-7 |
+| rejection          | 12   | 77% | 9e-6 |  (collapses to 0 at 1e-6)
+| DE                 | 28   | 90% | 4e-8 |
+| PSO                | 83   | 34% | 2e-8 |
+| GA                 | 100* | **0%** | **2e-13** |  *100 copies of ONE point
+| CMA-ES             | 63   | 3%  | 1e-6 |
+HONEST NUANCE (both directions):
+ - IDC uniquely returns the exact-value MANIFOLD (1700 diverse, still 877 at band 1e-6).
+ - Rejection: set collapses (measure-zero target can't be hit by chance).
+ - Metaheuristics: return only their <=100 pop; GA/CMA-ES CONVERGE TO ONE POINT (fill~0),
+   DE/PSO keep some spread but thin at tight bands. A scalar optimizer is a point-finder, not
+   a set-recovery method.
+ - IDC is NOT the most precise single point: GA (float64 root finder) hits |Ra-c|~2e-13 vs
+   IDC ~2e-7 (float32 floor of the OpenNN net). Our claim is the exact-value SET, not the
+   tightest point. Say so explicitly.
+NOTE: numbers are ONE representative run (sampling stochastic); trends robust.
+
+SIMPLEX (affine) EXACTNESS -- investigated per review. From baselines_hea.csv simplex_resid +
+pymoo_hea.csv: |sum x - 1| = reject_norepair 0.98 (no repair), reject_repair 6e-6, ours 8.4e-8,
+pymoo GA/DE/PSO/CMA-ES ~1e-17. FINDING: the affine simplex constraint is satisfied to MACHINE
+PRECISION by EVERY repaired method -- ours 8.4e-8 is the float32 floor (OpenNN is single
+precision; float32 eps ~1.2e-7), pymoo hits 1e-17 in float64. So simplex exactness = the SHARED
+affine repair, NOT a unique IDC power (and pymoo is even tighter in double precision). IDC's
+DISTINCTIVE exactness is the OUTPUT equality target via contraction (the CNC box result above).
+On the HEA OUTPUT target at equal 12000 budget IDC does NOT dominate: it recovers only 4 alloys
+(vs reject_repair 358, GA |HV-c|~1e-10) -- the tight 10-D simplex manifold is starved at 2000
+samples/iter (case_b uses 48000 evals -> 170 alloys). Honest: no exact-target win on HEA.
+Manuscript: Sec 2.2 (band = collection device) + Sec 5 tab:exact (all baselines, delta=1e-4) +
+Sec 5 Finding-1 affine-exactness clarification + intro/concl.
+HEA exact-target SWEEP is DELIBERATELY SKIPPED in baselines.cpp (if !simplex guard).
 
 ### Mixed-sense optimization (CNC: fix Ra + minimize F)  -> out/baselines_cnc_mixedsense.csv, out/pymoo_cnc.csv
 The pure fixed-target is the WORST case for ours (nothing to optimize). With a secondary

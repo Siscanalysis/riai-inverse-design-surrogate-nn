@@ -65,6 +65,8 @@ cd rerun
 ./build/Release/baselines.exe hea     # also exports models/<case>_surrogate.py for pymoo
 python pymoo_baselines.py cnc         # scalar min-F panel: GA/DE/PSO/CMA-ES, same repair + budget
 python pymoo_baselines.py hea
+python pymoo_baselines.py cnc exact   # exact-target panel: GA/DE/PSO/CMA-ES minimize |f-c|,
+                                      #   count solutions AT target + diversity (out/pymoo_cnc_exact.csv)
 python analyze_extrapolation.py cnc   # extrapolation analysis + fig_extrapolation_*.pdf
 ```
 

@@ -357,7 +357,16 @@ factibilidad, residuo medio $0.99$), mientras que con ella se satisface de forma
 exacta ($|\sum x-1|=0$) en todos los metodos (Tabla~\ref{tab:base}). El
 operador de reparacion no es una aportacion de este trabajo: procede de la linea de
 trabajo companion sobre optimizacion de respuesta \citep{scala2026idc}, y aqui lo
-damos por igual a todas las lineas base para que la comparacion sea limpia. Segunda,
+damos por igual a todas las lineas base para que la comparacion sea limpia. Conviene
+precisar, sobre la exactitud en el simplex: la restriccion afin se cumple a
+\emph{precision de maquina} en todo metodo que aplique la reparacion --nuestro
+$|\sum x-1|\approx8\times10^{-8}$ es el suelo de la precision simple ($\mathrm{float32}$)
+con que opera la red, y las metaheuristicas reparadas, que operan en doble precision,
+alcanzan $\sim10^{-17}$--. Es decir, la exactitud sobre el simplex proviene de la
+reparacion afin compartida, no es una particularidad de nuestro metodo; la exactitud
+propia de nuestro planteamiento es la del \emph{objetivo de igualdad en la salida}, que
+recupera la variedad en el valor exacto sin tolerancia (Tabla~\ref{tab:exact}), y se
+observa en el dominio de caja de la CNC. Segunda,
 la robustez no la optimiza ningun metodo: es una seleccion \emph{posterior} que aplicamos
 por igual al conjunto factible de cada uno (Seccion~\ref{sec:robustez}). La consecuencia
 honesta es que el punto mas robusto disponible tiende a aparecer en los conjuntos mas
@@ -415,46 +424,53 @@ CMA-ES              & 114.8 \\
 \paragraph{Especificacion exacta sin tolerancia} Un rasgo del planteamiento es que
 la especificacion de igualdad puede exigirse de forma \emph{exacta}, sin que el
 usuario elija una tolerancia. Para medirlo estrechamos la banda
-$\varepsilon=\delta\,(o_{\max}-o_{\min})$ hacia cero y contamos, con el mismo
-presupuesto de $1.2\times10^4$ evaluaciones, cuantas soluciones devuelve cada metodo
-\emph{en} el valor objetivo (Tabla~\ref{tab:exact}, caso CNC). El muestreo por rechazo
-no puede acertar un objetivo de medida nula: su conjunto se vacia al estrechar la
-banda ($920\to103\to12\to2\to0$ soluciones), y el residuo de su mejor punto no baja
-de un suelo fijado por la densidad de muestreo ($\approx9\times10^{-6}$), por muy
-estrecha que sea la peticion. Nuestra contraccion, en cambio, concentra todo el
-presupuesto sobre el objetivo y sigue devolviendo un conjunto poblado incluso con una
-banda de $\sim10^{-6}$ (877 soluciones), con residuos que descienden hasta
-$\sim2\times10^{-7}$. Es decir, recupera la variedad \emph{en el valor exacto} sin
-necesidad de tolerancia. No se trata de ser mejor optimizador que un muestreador
---recuperar un conjunto es justo la tarea del muestreo-- sino de que la unica via de
-muestreo directa colapsa en el objetivo exacto mientras la contraccion no; una
-metaheuristica escalar tampoco sirve aqui, pues converge a un unico punto y no a la
-variedad. En la HEA no reproducimos esta prueba: sobre el simplex la variedad de valor
-exacto es un conjunto de medida nula en diez dimensiones que ni siquiera nuestra
-contraccion puebla con banda evanescente dentro del presupuesto, y afirmar lo contrario
-seria deshonesto.
+$\varepsilon=\delta\,(o_{\max}-o_{\min})$ hacia cero y observamos, con el mismo
+presupuesto de $1.2\times10^4$ evaluaciones, cuantas soluciones \emph{distintas}
+devuelve cada metodo \emph{en} el valor objetivo y con que diversidad (caso CNC,
+Tabla~\ref{tab:exact}). Aqui comparamos con \emph{todas} las lineas base, incluidas las
+metaheuristicas escalares que minimizan $|R_a-c|$. El resultado separa tres
+comportamientos. El muestreo por rechazo no puede acertar un objetivo de medida nula: su
+conjunto se vacia al estrechar la banda ($920\to103\to12\to2\to0$ soluciones al pasar de
+$\delta=10^{-2}$ a $10^{-6}$), pues acertar de casualidad es cada vez menos probable. Las
+metaheuristicas escalares devuelven solo su poblacion ($\le100$ individuos) y, al ser
+optimizadores de un punto, tienden a \emph{colapsar} sobre una sola receta: GA y CMA-ES
+convergen a un unico diseno (diversidad $\approx0$, cientos de copias del mismo punto),
+mientras que DE y PSO conservan algo de dispersion pero con pocos supervivientes al
+estrechar la banda. Nuestra contraccion, en cambio, no necesita tolerancia: concentra el
+presupuesto sobre el objetivo y devuelve un conjunto \emph{poblado y diverso} --1700
+recetas con banda $10^{-4}$, todavia 877 con banda $\sim10^{-6}$, donde el rechazo ya no
+devuelve ninguna--. Es decir, recupera la \emph{variedad} en el valor exacto, no un punto.
+Una salvedad honesta: para un \emph{unico} punto exacto un buscador de raices en doble
+precision como GA lo clava mas fino ($|R_a-c|\sim10^{-13}$) que nuestra contraccion, cuyo
+residuo queda en el suelo de la precision simple de la red ($\sim2\times10^{-7}$); nuestra
+aportacion no es el punto mas preciso, sino el \emph{conjunto} de valor exacto que ningun
+otro metodo entrega. En la HEA no reproducimos esta prueba: sobre el simplex la variedad de
+valor exacto, con este presupuesto, ni siquiera nuestra contraccion la puebla con banda
+evanescente (recupera pocas aleaciones, Seccion siguiente), y afirmar una ventaja alli seria
+deshonesto.
 
 \begin{table}[t]
 \centering
-\caption{Especificacion exacta (CNC: fijar $R_a$), sin tolerancia elegida por el usuario.
-Soluciones devueltas \emph{en} el objetivo al estrechar la banda relativa $\delta$ hacia
-cero, con el mismo presupuesto de $1.2\times10^4$ evaluaciones. El muestreo por rechazo se
-vacia; nuestra contraccion mantiene un conjunto poblado y un residuo menor. Valores de una
-ejecucion representativa (el muestreo es estocastico).}
+\caption{Especificacion exacta (CNC: fijar $R_a$) con banda casi nula $\delta=10^{-4}$, sin
+tolerancia elegida por el usuario, al mismo presupuesto de $1.2\times10^4$ evaluaciones.
+Soluciones \emph{distintas} devueltas \emph{en} el objetivo, su diversidad (relleno medio del
+dominio) y el mejor residuo $|R_a-c|$. Solo la contraccion devuelve un conjunto amplio y
+diverso (la variedad); las metaheuristicas colapsan sobre uno o pocos puntos y el rechazo se
+agota. Una ejecucion representativa (el muestreo es estocastico).}
 \label{tab:exact}
-\begin{tabular}{lcccc}
+\begin{tabular}{lccc}
 \toprule
-$\delta$ & \multicolumn{2}{c}{Rechazo} & \multicolumn{2}{c}{Nuestro} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
- & soluc. & residuo & soluc. & residuo \\
+Metodo & soluc. & diversidad & mejor residuo \\
 \midrule
-$10^{-2}$ & 920 & $9\!\times\!10^{-6}$ & 1700 & $6\!\times\!10^{-6}$ \\
-$10^{-3}$ & 103 & $9\!\times\!10^{-6}$ & 1700 & $4\!\times\!10^{-6}$ \\
-$10^{-4}$ & 12  & $9\!\times\!10^{-6}$ & 1700 & $6\!\times\!10^{-7}$ \\
-$10^{-5}$ & 2   & $9\!\times\!10^{-6}$ & 1700 & $8\!\times\!10^{-7}$ \\
-$10^{-6}$ & \textbf{0} & --          & \textbf{877} & $2\!\times\!10^{-7}$ \\
+Nuestro (contraccion) & \textbf{1700} & $44\%$ & $6\times10^{-7}$ \\
+Rechazo (muestreo)    & 12   & $77\%$ & $9\times10^{-6}$ \\
+DE                    & 28   & $90\%$ & $4\times10^{-8}$ \\
+PSO                   & 83   & $34\%$ & $2\times10^{-8}$ \\
+GA                    & 100$^\ast$ & $0\%$  & $\mathbf{2\times10^{-13}}$ \\
+CMA-ES                & 63   & $3\%$  & $1\times10^{-6}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}\\[2pt]
+{\footnotesize $^\ast$100 copias de un unico punto (diversidad nula).}
 \end{table}
 
 \paragraph{Riesgo de extrapolacion de la variedad completa} La discusion de la
