@@ -12,7 +12,14 @@
 // Metrics per method: feasible count, feasibility rate (feasible / budget), input-
 // constraint satisfaction (simplex residual for HEA), diversity (mean per-input fill
 // of the domain), robustness of the feasible set (analytic Jacobian S, lower=better),
-// and wall-clock. Written to out/baselines_<case>.csv.
+// best residual to the exact target |f_k(x)-c|, and wall-clock. Written to
+// out/baselines_<case>.csv.
+//
+// Extra CNC-only experiments:
+//   - Exact target (no tolerance interval): sweep the equality band toward zero and count
+//     how many solutions AT the target each method returns. Rejection collapses to 0;
+//     IDC's contraction stays populated. -> out/baselines_cnc_exact.csv.
+//   - Mixed-sense (fix Ra + minimize F): best feasible F, ours vs rejection.
 
 #include "opennn/neural_network.h"
 #include "opennn/network_differential.h"
@@ -56,6 +63,7 @@ struct Metrics {
     double simplex_resid = 0;   // mean |sum(x)-1| over returned inputs (HEA)
     double mean_fill = 0;       // mean per-free-input range/domain over feasible set
     double mean_S = 0, min_S = 0;
+    double best_resid = 0;      // min |f_k(x)-c| the method achieves (EXACT target, no band)
     double seconds = 0;
 };
 
@@ -155,10 +163,11 @@ int main(int argc, char** argv)
     const long BUDGET = 12000;   // 6 iters x 2000 evals; also the one-shot budget (equal total)
     vector<Metrics> results;
 
-    auto record = [&](const string& m, const MatrixR& Xfeas, long budget, long tevals, double secs, double sresid) {
+    auto record = [&](const string& m, const MatrixR& Xfeas, long budget, long tevals, double secs, double sresid, double bresid) {
         Metrics M; M.method = m; M.budget = budget; M.true_evals = tevals; M.feasible = Xfeas.rows();
         M.feas_rate = tevals ? (double)Xfeas.rows()/tevals : 0;   // rate over TRUE evals (fair)
         M.simplex_resid = sresid;
+        M.best_resid = bresid;
         M.mean_fill = mean_fill_of(Xfeas, domain, n_in);
         robustness_stats(diff, Xfeas, n_in, n_out, ok, span, M.mean_S, M.min_S);
         M.seconds = secs;
@@ -180,8 +189,15 @@ int main(int argc, char** argv)
              << "  rate=" << setw(8) << M.feas_rate
              << "  fill%=" << setw(7) << M.mean_fill
              << "  minS=" << setw(9) << M.min_S
+             << "  bestResid=" << setw(10) << M.best_resid
              << "  simplex=" << setw(7) << M.simplex_resid
              << "  " << M.seconds << "s\n";
+    };
+    // best |f_k(x)-c| over a set of output rows (the method's closest approach to the EXACT target)
+    auto best_resid_of = [&](const MatrixR& Y, Index col) {
+        double b = 1e30;
+        for (Index r = 0; r < Y.rows(); ++r) b = min(b, (double)fabs(Y(r, col) - target));
+        return (Y.rows() ? b : 0.0);
     };
 
     // ---- 1. rejection, NO repair ----
@@ -191,7 +207,8 @@ int main(int argc, char** argv)
         const MatrixR Y = opt.calculate_outputs(X);
         const MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("reject_norepair", Xf, BUDGET, BUDGET, secs, simplex_resid(X));
+        // exact-target residual: closest any of the 12000 uniform samples gets to c (no band).
+        record("reject_norepair", Xf, BUDGET, BUDGET, secs, simplex_resid(X), best_resid_of(Y, ok));
     }
 
     // ---- 2. rejection + repair (1 iteration) ----
@@ -215,7 +232,7 @@ int main(int argc, char** argv)
         MatrixR Y = (M.rows() ? M.rightCols(n_out).eval() : MatrixR(0, n_out));
         MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("reject_repair", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X));
+        record("reject_repair", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X), best_resid_of(Y, ok));
     }
 
     // ---- 3. ours (iterative contraction), same total budget ----
@@ -240,7 +257,70 @@ int main(int argc, char** argv)
         MatrixR Y = (M.rows() ? M.rightCols(n_out).eval() : MatrixR(0, n_out));
         MatrixR Xf = refilter(X, Y);
         double secs = chrono::duration<double>(Clock::now()-t0).count();
-        record("ours_iterative", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X));
+        record("ours_iterative", Xf, BUDGET, (long)opt.get_evaluations_used(), secs, simplex_resid(X), best_resid_of(Y, ok));
+    }
+
+    // ---- Exact target (no tolerance interval): populated solution set at a vanishing band ----
+    // The equality band used above is only a COLLECTION device to gather many manifold points.
+    // If the specification is a single EXACT value, the decisive question is not "how close does
+    // the single best point get" (with a low-dimensional output a uniform sampler may get one
+    // lucky near-hit) but "how many solutions AT the exact value does the method still return".
+    // Hitting a measure-zero target by chance is vanishingly unlikely, so as the band shrinks the
+    // rejection set collapses toward zero. IDC needs no user tolerance: domain contraction
+    // concentrates the whole budget onto the target, so it keeps returning a populated exact set.
+    // Same 12000-eval budget; we sweep the tolerance toward zero and count returned solutions.
+    // Restricted to the box-domain case (CNC): on the HEA simplex the exact-target manifold is a
+    // measure-zero set in 10-D that even IDC cannot populate at a vanishing band within budget, so
+    // an exact-target claim there would be dishonest; the simplex/repair story is made separately.
+    if (!C.simplex) {
+        opt.clear_objectives(); opt.clear_formula_constraints();   // pure uniform reference (no constraint-aware sampling)
+        // one uniform reference sample at the same budget, reused for every band width
+        const MatrixR Xu = opt.calculate_random_inputs(domain, BUDGET);
+        const MatrixR Yu = opt.calculate_outputs(Xu);
+        const double range = (double)(o_hi - o_lo);
+        double reject_best = 1e30;
+        for (Index r = 0; r < Yu.rows(); ++r) reject_best = min(reject_best, (double)fabs(Yu(r, ok) - target));
+
+        ofstream ex("out/baselines_" + C.name + "_exact.csv");
+        ex << "rel_tol,band,reject_feasible,reject_best_resid,ours_feasible,ours_best_resid,ours_true_evals\n";
+        cout << "\n-- Exact target (no tolerance interval): solutions returned AT the target, "
+             << "12000 evals --\n";
+        cout << "   " << left << setw(9) << "rel_tol" << setw(12) << "band"
+             << setw(11) << "rej_feas" << setw(13) << "rej_resid"
+             << setw(12) << "ours_feas" << setw(13) << "ours_resid" << right << "\n";
+        for (float tol : {1e-2f, 1e-3f, 1e-4f, 1e-5f, 1e-6f}) {
+            const double band_tol = (double)tol * range;
+            long rej_feas = 0;
+            for (Index r = 0; r < Yu.rows(); ++r) {
+                if (fabs(Yu(r, ok) - target) > band_tol) continue;
+                if (C.simplex) { double s=0; for (Index c=0;c<n_in;++c) s+=Xu(r,c); if (fabs(s-1.0) > simplex_tol) continue; }
+                ++rej_feas;
+            }
+
+            opt.clear_objectives(); opt.clear_formula_constraints();
+            if (C.simplex) {
+                string sx; for (Index c=0;c<n_in;++c) sx += (c?" + ":"") + in_vars[(size_t)c].name;
+                opt.set_formula_constraint(sx, ComparisonOperator::EqualTo, 1.0f, 1.0f);
+            }
+            opt.set_objective(C.target_output, ResponseOptimization::Sense::Fixed, target);
+            opt.set_relative_tolerance(tol);                 // -> exact as tol -> 0
+            opt.set_min_feasible_ratio(1e-6f);
+            opt.set_iterations(6); opt.set_evaluations_number((int)(BUDGET/6));
+            opt.set_max_total_evaluations((Index)(BUDGET*8));
+            MatrixR Me;
+            try { Me = opt.perform_response_optimization(); }
+            catch (const exception& e) { cout << "   [ours exact tol=" << tol << " failed: " << e.what() << "]\n"; }
+            double ours_best = 1e30; for (Index r = 0; r < Me.rows(); ++r) ours_best = min(ours_best, (double)fabs(Me(r, n_in+ok) - target));
+            if (!Me.rows()) ours_best = 0;
+            const long ev = (long)opt.get_evaluations_used();
+            cout << "   " << left << setw(9) << tol << setw(12) << band_tol
+                 << setw(11) << rej_feas << setw(13) << (rej_feas ? reject_best : 0.0)
+                 << setw(12) << Me.rows() << setw(13) << ours_best << right << "\n";
+            ex << tol << "," << band_tol << "," << rej_feas << "," << (rej_feas ? reject_best : 0.0)
+               << "," << Me.rows() << "," << ours_best << "," << ev << "\n";
+        }
+        cout << "   (uniform sampler best single residual = " << reject_best
+             << "; below that band the rejection set is empty.)\n";
     }
 
     // ---- Mixed-sense optimization (CNC only): FIX Ra + MINIMIZE F ----
@@ -287,11 +367,11 @@ int main(int argc, char** argv)
 
     // ---- dump ----
     ofstream csv("out/baselines_" + C.name + ".csv");
-    csv << "method,budget,true_evals,feasible,feas_rate,simplex_resid,mean_fill_pct,mean_S,min_S,seconds\n";
+    csv << "method,budget,true_evals,feasible,feas_rate,simplex_resid,mean_fill_pct,mean_S,min_S,best_resid,seconds\n";
     for (const auto& M : results)
         csv << M.method << "," << M.budget << "," << M.true_evals << "," << M.feasible << "," << M.feas_rate << ","
             << M.simplex_resid << "," << M.mean_fill << "," << M.mean_S << "," << M.min_S << ","
-            << M.seconds << "\n";
+            << M.best_resid << "," << M.seconds << "\n";
     cout << "wrote out/baselines_" << C.name << ".csv\n";
     return 0;
 }

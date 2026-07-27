@@ -118,7 +118,10 @@ o varias restricciones de igualdad sobre la red sustituta
 salidas a minimizar, a maximizar y a fijar. Tercera, introducimos un criterio de
 seleccion que ordena las soluciones de la variedad por robustez, medida con el
 Jacobiano analitico de la red y ponderada por el dominio, y la equilibra con la
-centralidad del punto en la caja de diseno. El metodo se valida en dos casos con
+centralidad del punto en la caja de diseno. Al tratarse de una recuperacion de
+conjunto y no de una relajacion, la especificacion puede exigirse ademas de forma
+\emph{exacta}, sin tolerancia elegida por el usuario, algo que el muestreo por rechazo
+no alcanza. El metodo se valida en dos casos con
 datos reales y variables numericas (Secciones~\ref{sec:cnc} y~\ref{sec:hea}).
 
 \section{Optimizacion de respuesta de sentido mixto}
@@ -142,6 +145,16 @@ afines, evalua la red y retiene las que caen en la banda, contrayendo
 iterativamente el dominio alrededor de la region factible. El resultado no es un
 punto sino un conjunto de soluciones $\{\mathbf{x}^{(r)}\}$ que aproxima la
 variedad $\mathcal{M}_c=\{\mathbf{x}\in\mathcal{X}: f_k(\mathbf{x})=c_k\}$.
+
+La banda $\varepsilon$ es solo un \emph{mecanismo de recoleccion}: sirve para
+retener muchos puntos de la variedad, no para relajar la especificacion. Como la
+contraccion del dominio concentra el muestreo alrededor del valor objetivo, el
+metodo no necesita que el usuario fije una tolerancia; puede pedirse el valor
+\emph{exacto} ($\varepsilon\to0$) y la contraccion sigue devolviendo un conjunto
+poblado de soluciones cuyo residuo $|f_k(\mathbf{x})-c_k|$ tiende a cero. Esto
+distingue el planteamiento del muestreo por rechazo, que no puede acertar un
+objetivo de medida nula: su conjunto factible se vacia al estrechar la banda
+(Seccion~\ref{sec:baselines}).
 
 \subsection{Sentidos mixtos}
 Cuando junto a una salida fija coexisten salidas a minimizar o maximizar, la
@@ -399,6 +412,51 @@ CMA-ES              & 114.8 \\
 \end{tabular}
 \end{table}
 
+\paragraph{Especificacion exacta sin tolerancia} Un rasgo del planteamiento es que
+la especificacion de igualdad puede exigirse de forma \emph{exacta}, sin que el
+usuario elija una tolerancia. Para medirlo estrechamos la banda
+$\varepsilon=\delta\,(o_{\max}-o_{\min})$ hacia cero y contamos, con el mismo
+presupuesto de $1.2\times10^4$ evaluaciones, cuantas soluciones devuelve cada metodo
+\emph{en} el valor objetivo (Tabla~\ref{tab:exact}, caso CNC). El muestreo por rechazo
+no puede acertar un objetivo de medida nula: su conjunto se vacia al estrechar la
+banda ($920\to103\to12\to2\to0$ soluciones), y el residuo de su mejor punto no baja
+de un suelo fijado por la densidad de muestreo ($\approx9\times10^{-6}$), por muy
+estrecha que sea la peticion. Nuestra contraccion, en cambio, concentra todo el
+presupuesto sobre el objetivo y sigue devolviendo un conjunto poblado incluso con una
+banda de $\sim10^{-6}$ (877 soluciones), con residuos que descienden hasta
+$\sim2\times10^{-7}$. Es decir, recupera la variedad \emph{en el valor exacto} sin
+necesidad de tolerancia. No se trata de ser mejor optimizador que un muestreador
+--recuperar un conjunto es justo la tarea del muestreo-- sino de que la unica via de
+muestreo directa colapsa en el objetivo exacto mientras la contraccion no; una
+metaheuristica escalar tampoco sirve aqui, pues converge a un unico punto y no a la
+variedad. En la HEA no reproducimos esta prueba: sobre el simplex la variedad de valor
+exacto es un conjunto de medida nula en diez dimensiones que ni siquiera nuestra
+contraccion puebla con banda evanescente dentro del presupuesto, y afirmar lo contrario
+seria deshonesto.
+
+\begin{table}[t]
+\centering
+\caption{Especificacion exacta (CNC: fijar $R_a$), sin tolerancia elegida por el usuario.
+Soluciones devueltas \emph{en} el objetivo al estrechar la banda relativa $\delta$ hacia
+cero, con el mismo presupuesto de $1.2\times10^4$ evaluaciones. El muestreo por rechazo se
+vacia; nuestra contraccion mantiene un conjunto poblado y un residuo menor. Valores de una
+ejecucion representativa (el muestreo es estocastico).}
+\label{tab:exact}
+\begin{tabular}{lcccc}
+\toprule
+$\delta$ & \multicolumn{2}{c}{Rechazo} & \multicolumn{2}{c}{Nuestro} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & soluc. & residuo & soluc. & residuo \\
+\midrule
+$10^{-2}$ & 920 & $9\!\times\!10^{-6}$ & 1700 & $6\!\times\!10^{-6}$ \\
+$10^{-3}$ & 103 & $9\!\times\!10^{-6}$ & 1700 & $4\!\times\!10^{-6}$ \\
+$10^{-4}$ & 12  & $9\!\times\!10^{-6}$ & 1700 & $6\!\times\!10^{-7}$ \\
+$10^{-5}$ & 2   & $9\!\times\!10^{-6}$ & 1700 & $8\!\times\!10^{-7}$ \\
+$10^{-6}$ & \textbf{0} & --          & \textbf{877} & $2\!\times\!10^{-7}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Riesgo de extrapolacion de la variedad completa} La discusion de la
 Seccion~\ref{sec:robustez} sugiere una pregunta que podemos medir sobre \emph{todas}
 las soluciones devueltas, no solo sobre el punto seleccionado: ?`que metodo produce una
@@ -420,7 +478,9 @@ frente a la extrapolacion a cambio de amplitud.
 En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
 variedad de un objetivo unico; en la optimizacion de sentido mixto nuestro metodo iguala a
 los mejores optimizadores de proposito general (DE, PSO) con el mismo presupuesto y supera
-al muestreo, a GA y a CMA-ES. El valor del planteamiento como \emph{problema inverso} no
+al muestreo, a GA y a CMA-ES; y cuando la especificacion se exige de forma \emph{exacta},
+solo la contraccion sigue devolviendo la variedad al estrechar la banda hacia cero, mientras
+el muestreo se queda sin soluciones (Tabla~\ref{tab:exact}). El valor del planteamiento como \emph{problema inverso} no
 reside en ganar un eje aislado, sino en unificar en una sola pasada la recuperacion de la
 variedad, los sentidos mixtos y la seleccion por robustez sobre modelos sustitutos
 reparados, con una variedad que ademas se mantiene a la vez cerca de los datos y en el

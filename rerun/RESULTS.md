@@ -84,6 +84,31 @@ Honest findings (none is "we dominate"):
 ALL methods use EXACTLY 12000 TRUE surrogate forwards (repair evals counted within budget):
 reject 12000, ours 12000 (iters=6 spends the whole budget). Literal parity.
 
+### Exact target, NO tolerance interval (CNC only)  -> out/baselines_cnc_exact.csv
+Shows IDC handles an EXACT equality spec without a user-chosen tolerance. The band is only a
+COLLECTION device; sweep it toward zero (rel_tol delta = 1e-2..1e-6) and count solutions
+returned AT the target, same 12000-eval budget. HONEST framing pivot: the right metric is NOT
+"best single residual" -- Ra is effectively feed-dominated (near-1D), so a uniform sampler's
+LUCKY best point already lands ~9e-6 away, comparable to ours. The decisive metric is HOW MANY
+solutions AT the target each method returns: hitting a measure-zero target by chance is
+vanishingly unlikely, so the rejection SET collapses as the band shrinks, while contraction
+concentrates the whole budget on the target and stays populated.
+| delta (rel_tol) | band | reject #sol | ours #sol |
+| 1e-2 | 1.2e-2 | 920 | 1700 |
+| 1e-3 | 1.2e-3 | 103 | 1700 |
+| 1e-4 | 1.2e-4 | 12  | 1700 |
+| 1e-5 | 1.2e-5 | 2   | 1700 |
+| 1e-6 | 1.2e-6 | **0** | **877** |  <- rejection empty; ours still returns the exact-value set
+Reject best single residual floor ~9e-6 (constant, density-limited); ours residual -> ~2e-7.
+NOTE: numbers are ONE representative run (uniform sampling is unseeded/stochastic); the TREND
+(reject -> 0, ours stays populated) is robust. NOT a strawman "better optimizer than a sampler":
+set recovery IS the sampler's job, and a scalar optimizer converges to ONE point (not the
+manifold), so neither is the right tool at an exact target -- only contraction is.
+HEA: exact-target experiment is DELIBERATELY SKIPPED (if !simplex guard in baselines.cpp).
+On the 10-D simplex the exact-value manifold is measure-zero and even IDC cannot populate it at
+a vanishing band within budget (throws "infeasible after oversampling") -- claiming a win there
+would be dishonest. Manuscript: Sec 2.2 (band = collection device) + Sec 5 tab:exact + intro/concl.
+
 ### Mixed-sense optimization (CNC: fix Ra + minimize F)  -> out/baselines_cnc_mixedsense.csv, out/pymoo_cnc.csv
 The pure fixed-target is the WORST case for ours (nothing to optimize). With a secondary
 objective (min F), ours ties the best general-purpose optimizers and beats GA, sampling and
