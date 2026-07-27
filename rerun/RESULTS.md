@@ -116,7 +116,14 @@ the lib+headers mid-work. The companion is now SELF-CONTAINED: rerun/_vendor/ ho
 (both gitignored). CMake points only at _vendor; nothing depends on the live source.
 
 ## Manuscript
-paper/manuscript.pdf (12 pages) - includes the honest baselines section (Sec 5) with
+paper/manuscript.pdf - includes the honest baselines section (Sec 5) with
 tab:base + tab:mixed + fig_extrapolation_cnc.pdf, all at the 12000-eval budget. Baselines =
 reject +/- repair, ours, and the pymoo panel (GA/DE/PSO/CMA-ES) for the scalar objective;
 NSGA-II dropped (see note above). Draft for review BEFORE sending the title email.
+FORMAT (2026-07-27): now in the official RIAI camera-ready format (elsarticle 5p +
+ecrc_RIAI.sty, two-column CRC, Elsevier/SD/RIAI logo header, "Copyright (c) 2026 CEA.").
+The two-column format compresses the same content to 6 pages (vs 12 in the old single-column
+preprint draft - same content, denser layout). RIAI package files (ecrc_RIAI.sty,
+elsarticle.cls, elsarticle-harv.bst, RIAIlogo.pdf, SDlogo-5p.pdf, elsevier-logo-5p.pdf) are
+committed under paper/ and pulled from the RIAI template bundle. TODO before submit: real
+author emails (COMPLETAR@ placeholders) + volume/firstpage when assigned.

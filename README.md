@@ -76,8 +76,17 @@ python paper/figs/gen_figs.py          # reads rerun/out/*.csv -> paper/figs/*.p
 ```
 cd paper && pdflatex manuscript.tex && pdflatex manuscript.tex
 ```
-The draft uses the stock `elsarticle` class so it compiles as-is; for submission,
-swap in the RIAI `ecrc_RIAI.sty` front-matter package.
+The manuscript uses the official **RIAI camera-ready format** (Elsevier CRC): the
+`elsarticle` class in `5p` mode plus `ecrc_RIAI.sty`, which produces the two-column
+layout, the Elsevier/ScienceDirect/RIAI logo header, the running heads and the
+mandatory `Copyright (c) 2026 CEA.` line. The required RIAI package files ship in
+`paper/` and must stay next to `manuscript.tex`:
+`ecrc_RIAI.sty`, `elsarticle.cls` (the CRC-compatible copy that defines `\jtype`;
+it must take precedence over any TeX-distribution `elsarticle.cls`),
+`elsarticle-harv.bst`, `RIAIlogo.pdf`, `SDlogo-5p.pdf`, `elsevier-logo-5p.pdf`.
+Must be compiled with `pdflatex` (plain `latex` will not work). Pending before
+submission: fill in the real author emails (`COMPLETAR@...` placeholders) and the
+volume/first-page once assigned by the journal.
 
 ## Status
 Case A, Case B, the honest baselines (rejection +/- repair, ours, pymoo scalar panel)

@@ -1,18 +1,32 @@
-%% RIAI extension - draft.
-%% Class: elsarticle (RIAI uses elsarticle + ecrc_RIAI.sty). This draft compiles with
-%% stock elsarticle so the PDF can be reviewed now; swap in ecrc_RIAI.sty for submission.
-\documentclass[preprint,12pt,authoryear]{elsarticle}
+%% RIAI submission format.
+%% Elsevier CRC layout used by RIAI: elsarticle (5p) + ecrc_RIAI.sty.
+%% Requires the RIAI files in this directory: ecrc_RIAI.sty, elsarticle.cls,
+%% elsarticle-harv.bst, RIAIlogo.pdf, SDlogo-5p.pdf, elsevier-logo-5p.pdf.
+%% Compile with pdflatex (standard latex will not work).
+\documentclass[5p,times,authoryear]{elsarticle}
+
+%% The ecrc package makes the RIAI CRC functionality (running heads, logos) available.
+\usepackage{ecrc_RIAI}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,es-noindentfirst]{babel}
+\addto\captionsspanish{\def\tablename{Tabla}}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{url}
 \graphicspath{{figs/}}
 
-\journal{Revista Iberoamericana de Automatica e Informatica Industrial}
+%% RIAI running-head / logo metadata.
+\volume{00}
+\firstpage{1}
+\journalname{Revista Iberoamericana de Automatica e Informatica industrial}
+\jid{RIAI}
+\jnltitlelogo{}
+
+%% Authors as they appear in the running head.
+\runauth{Scala y Lopez}
 
 \begin{document}
 
@@ -21,11 +35,15 @@
 \title{Problemas inversos con objetivos mixtos y restricciones de igualdad
 sobre redes neuronales sustitutas}
 
-\author[nd]{S. Scala}
+\author[nd]{S. Scala\corref{cor1}}
+\ead{COMPLETAR@artelnics.com} %% TODO: correo real del autor en correspondencia
 \author[nd]{R. Lopez}
-\address[nd]{Artelnics, Salamanca, Espana}
+\ead{COMPLETAR@artelnics.com} %% TODO: correo real
+\cortext[cor1]{Autor en correspondencia.}
+\address[nd]{Artelnics, Salamanca, Espana.}
 
 \begin{abstract}
+\emph{Copyright {\copyright} 2026 CEA.}\\
 El diseno industrial optimo suele plantearse como la busqueda de un unico punto
 optimo sobre un modelo sustituto entrenado con datos. Muchos problemas de
 ingenieria, sin embargo, no piden un optimo sino \emph{una especificacion}: un
@@ -199,7 +217,7 @@ directamente visualizable en el espacio de decision
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.78\linewidth]{fig_cnc_tradeoff.pdf}
+\includegraphics[width=\linewidth]{fig_cnc_tradeoff.pdf}
 \caption{Caso A. Compromiso de sentido mixto sobre la variedad de $R_a$ fijo:
 cada punto es una receta con la rugosidad en la especificacion; el eje horizontal
 es la fuerza a minimizar y el vertical la MRR a maximizar, coloreados por la
@@ -209,7 +227,7 @@ robustez $S$ de la ecuacion~\eqref{eq:sens}.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.72\linewidth]{fig_cnc_manifold3d.pdf}
+\includegraphics[width=\linewidth]{fig_cnc_manifold3d.pdf}
 \caption{Caso A. La variedad de recetas con $R_a$ fijo es una superficie
 bidimensional en las tres palancas continuas $(v_c,f,a_p)$, coloreada por la
 fuerza de corte $F$.}
@@ -252,14 +270,14 @@ conjunto, la robustez de la ecuacion~\eqref{eq:sens} separa las composiciones
 poco sensibles a la variacion de composicion de las muy sensibles, y la seleccion
 centralidad--robustez recomienda la aleacion mas manufacturable.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.92\linewidth]{fig_hea_parallel.pdf}
+\includegraphics[width=0.9\linewidth]{fig_hea_parallel.pdf}
 \caption{Caso B. Variedad de composiciones con dureza fija, en coordenadas
 paralelas sobre las diez fracciones atomicas (suma uno). El color codifica la
 robustez $S$; las trayectorias oscuras son las aleaciones mas robustas.}
 \label{fig:hea_parallel}
-\end{figure}
+\end{figure*}
 
 \section{Comparacion honesta con lineas base}
 \label{sec:baselines}
@@ -275,6 +293,17 @@ metaheuristicas de proposito general de \texttt{pymoo}. Todas las lineas base re
 mismo sustituto congelado, las mismas restricciones y el mismo presupuesto de
 evaluaciones. La Tabla~\ref{tab:base} resume los resultados y la Figura~\ref{fig:extrap}
 ilustra el analisis de extrapolacion que los distingue.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{fig_extrapolation_cnc.pdf}
+\caption{Distribucion (CDF) sobre \emph{toda} la variedad factible de la CNC. Izquierda:
+centralidad (margen a la pared); mas a la derecha es mas seguro. Derecha: distancia al
+dato de entrenamiento mas cercano; mas a la izquierda es mas seguro. Nuestra variedad
+(rojo) es favorable en ambos paneles: se mantiene en el interior del dominio y cerca de los
+datos; el rechazo (gris/azul) se dispersa hacia el borde y se aleja mas del dato.}
+\label{fig:extrap}
+\end{figure*}
 
 \paragraph{Protocolo} El presupuesto es de $1.2\times10^4$ evaluaciones del sustituto
 para todos los metodos, contado con el numero real de propagaciones directas (incluidas
@@ -387,17 +416,6 @@ paredes y el criterio informativo es la distancia al dato, se repite el orden (n
 $0.16$ frente a $0.22$ del rechazo reparado). La contrapartida honesta es que la nuestra es
 una variedad mas pequena (menor cobertura, Tabla~\ref{tab:base}): compramos seguridad
 frente a la extrapolacion a cambio de amplitud.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\linewidth]{fig_extrapolation_cnc.pdf}
-\caption{Distribucion (CDF) sobre \emph{toda} la variedad factible de la CNC. Izquierda:
-centralidad (margen a la pared); mas a la derecha es mas seguro. Derecha: distancia al
-dato de entrenamiento mas cercano; mas a la izquierda es mas seguro. Nuestra variedad
-(rojo) es favorable en ambos paneles: se mantiene en el interior del dominio y cerca de los
-datos; el rechazo (gris/azul) se dispersa hacia el borde y se aleja mas del dato.}
-\label{fig:extrap}
-\end{figure}
 
 En resumen, el rechazo reparado es una linea base simple y fuerte para cubrir la
 variedad de un objetivo unico; en la optimizacion de sentido mixto nuestro metodo iguala a
