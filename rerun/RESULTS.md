@@ -6,9 +6,12 @@
 > `../AUDIT_DECISIONS.md` (LOCKED NUMBERS). Two consequences worth flagging:
 > (1) the HEA extrapolation "win" REVERSED under the seed (ours d2train 0.253 vs reject 0.220,
 >     because ours recovers only ~3 HEA points => noise); the manuscript now DROPS that claim.
-> (2) `case_b_hea.exe` currently CRASHES at startup (0xC0000409) on the pinned vendored lib
->     (case_a + baselines run fine same seed => case_b-specific / pre-existing). Case B numbers
->     (170 alloys, 44-100% fill, HV~546) are kept from the committed out/hea_manifold.csv. TODO: debug.
+> (2) `case_b_hea.exe` crash FIXED (2026-07-27): the HEA simplex's low feasible ratio triggered
+>     unbounded adaptive oversampling into a lib crash path. Fix in case_b: set_min_feasible_ratio(1e-4)
+>     + set_evaluations_number(48000) + set_max_total_evaluations(500000). Case B now seeded + crash-free:
+>     **183 alloys, 39-99% fill, HV~538, |sum-1|=0** (was 170/44-100% from the crashing oversample).
+> References added (strictly necessary, web-verified): pymoo (Blank&Deb 2020), GA (Goldberg 1989),
+>     DE (Storn&Price 1997), PSO (Kennedy&Eberhart 1995), CMA-ES (Hansen&Ostermeier 2001), OpenNN.
 > The tables below still show the ORIGINAL unseeded numbers for history; trust AUDIT_DECISIONS.md.
 
 

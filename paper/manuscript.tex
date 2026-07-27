@@ -275,11 +275,11 @@ aleaciones. La composición impone la restricción afín de \emph{símplex}
 $\sum_i x_i = 1$, la prueba canónica del operador de reparación afín.
 
 \paragraph{Recuperación de la variedad de aleaciones} Fijamos la dureza en un
-valor alcanzable ($HV\approx546$) y recuperamos la variedad de composiciones que
-la producen. El optimizador devuelve \textbf{170 aleaciones} distintas, todas
+valor alcanzable ($HV\approx538$) y recuperamos la variedad de composiciones que
+la producen. El optimizador devuelve \textbf{183 aleaciones} distintas, todas
 sobre el símplex con error máximo $|\sum_i x_i-1|=0$ (satisfacción exacta de la
-restricción afín). La variedad es diversa: cada fracción recorre entre el 44\% y
-el 100\% de su rango admisible (Figura~\ref{fig:hea_parallel}), lo que muestra que
+restricción afín). La variedad es diversa: cada fracción recorre entre el 39\% y
+el 99\% de su rango admisible (Figura~\ref{fig:hea_parallel}), lo que muestra que
 existen familias de aleaciones muy distintas con la misma dureza. Sobre ese
 conjunto, la robustez de la ecuación~\eqref{eq:sens} separa las composiciones
 poco sensibles a la variación de composición de las muy sensibles, y la selección
@@ -304,7 +304,7 @@ entradas), comparamos: muestreo por rechazo \emph{sin} reparación; muestreo por
 rechazo \emph{con} reparación (una ronda de muestreo, reparación afín de entradas,
 reparación de la salida y filtrado, exactamente los mismos operadores); nuestro
 método iterativo con contracción del dominio; y, para el objetivo escalar, las
-metaheurísticas de propósito general de \texttt{pymoo}. Todas las líneas base reciben el
+metaheurísticas de propósito general de \texttt{pymoo} \citep{blank2020pymoo}. Todas las líneas base reciben el
 mismo sustituto congelado, las mismas restricciones y el mismo presupuesto de
 evaluaciones. La Tabla~\ref{tab:base} resume los resultados y la Figura~\ref{fig:extrap}
 ilustra el análisis de extrapolación que los distingue.
@@ -391,8 +391,9 @@ todas las soluciones factibles son equivalentes. La diferencia aparece al añadi
 objetivo secundario. En la tarea de sentido mixto de la CNC (fijar $R_a$ y
 \emph{minimizar} $F$) comparamos, con el mismo sustituto exportado y el mismo
 presupuesto (exactamente $1.2\times10^4$ evaluaciones para todos), contra metaheurísticas
-de propósito general de \texttt{pymoo} (GA, DE, PSO, CMA-ES) con la misma reparación
-(Tabla~\ref{tab:mixed}). Nuestro método alcanza una fuerza factible de $78.1$~N,
+de propósito general de \texttt{pymoo} \citep{blank2020pymoo}: GA \citep{goldberg1989ga},
+DE \citep{storn1997de}, PSO \citep{kennedy1995pso} y CMA-ES \citep{hansen2001cmaes}, con
+la misma reparación (Tabla~\ref{tab:mixed}). Nuestro método alcanza una fuerza factible de $78.1$~N,
 prácticamente al nivel de los mejores optimizadores (DE y PSO, $78.0$~N) y por delante de
 GA ($87.5$~N, $+12\%$), del muestreo por rechazo ($93.5$~N, $+20\%$) y de CMA-ES
 ($114.8$~N, $+47\%$). No afirmamos superar a DE ni a PSO: con el mismo presupuesto
@@ -532,20 +533,50 @@ especificación y a objetivos de igualdad múltiples simultáneos.
 \section*{Reproducibilidad}
 El código, los modelos sustitutos y los datos que reproducen las figuras y
 todas las cifras están disponibles en el repositorio companion (directorio
-\texttt{rerun/}), construido sobre la biblioteca OpenNN. Los experimentos usan una
+\texttt{rerun/}), construido sobre la biblioteca OpenNN \citep{opennn}. Los experimentos usan una
 semilla fija (\texttt{set\_seed(1)}), de modo que las cifras son reproducibles bit a bit;
 el análisis de extrapolación se obtiene con \texttt{analyze\_extrapolation.py} sobre los
-conjuntos factibles volcados por \texttt{baselines}.
+conjuntos factibles volcados por \texttt{baselines}. Los estudios de caso (Secciones~\ref{sec:cnc}
+y~\ref{sec:hea}) recuperan la variedad con un presupuesto de muestreo mayor que el de la
+comparación controlada de la Sección~\ref{sec:baselines} (fijada en $1.2\times10^4$
+evaluaciones para todos los métodos); los presupuestos exactos figuran en el repositorio.
 
 \begin{thebibliography}{9}
+\bibitem[Artelnics(2026)]{opennn}
+Artelnics, 2026. OpenNN: Open Neural Networks Library. Software,
+\url{https://www.opennn.net}.
+
+\bibitem[Blank y Deb(2020)]{blank2020pymoo}
+Blank, J., Deb, K., 2020. pymoo: Multi-objective optimization in Python. IEEE
+Access 8, 89497--89509. DOI 10.1109/ACCESS.2020.2990567.
+
+\bibitem[Canal y Borille(2022)]{canal2022}
+Canal, G., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
+(AISI 304). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.
+
+\bibitem[Goldberg(1989)]{goldberg1989ga}
+Goldberg, D.~E., 1989. Genetic Algorithms in Search, Optimization, and Machine
+Learning. Addison-Wesley, Reading, MA.
+
+\bibitem[Hansen y Ostermeier(2001)]{hansen2001cmaes}
+Hansen, N., Ostermeier, A., 2001. Completely derandomized self-adaptation in
+evolution strategies. Evolutionary Computation 9 (2), 159--195.
+DOI 10.1162/106365601750190398.
+
+\bibitem[Kennedy y Eberhart(1995)]{kennedy1995pso}
+Kennedy, J., Eberhart, R., 1995. Particle swarm optimization. En: Proceedings of
+ICNN'95 -- International Conference on Neural Networks. Vol.~4. IEEE,
+pp. 1942--1948. DOI 10.1109/ICNN.1995.488968.
+
 \bibitem[Scala y López(2026)]{scala2026idc}
 Scala, S., López, R., 2026. Una jerarquía de reparación de restricciones para la
 optimización factible por construcción sobre redes neuronales sustitutas. Manuscrito
 companion (optimización de respuesta).
 
-\bibitem[Canal y Borille(2022)]{canal2022}
-Canal, G., Borille, A.~V., 2022. CNC turning roughness, forces and tool wear
-(AISI 304). Conjunto de datos, Kaggle. DOI 10.34740/kaggle/dsv/3702243.
+\bibitem[Storn y Price(1997)]{storn1997de}
+Storn, R., Price, K., 1997. Differential evolution -- a simple and efficient
+heuristic for global optimization over continuous spaces. Journal of Global
+Optimization 11 (4), 341--359. DOI 10.1023/A:1008202821328.
 
 \bibitem[Wen et al.(2019)]{wen2019}
 Wen, C., Zhang, Y., Wang, C., et al., 2019. Machine learning assisted design of

@@ -27,6 +27,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+    cout << unitbuf;   // flush every << so a crash localizes to the last printed line
     set_seed(1);   // fixed seed => reproducible manuscript numbers
     const filesystem::path model_path = (argc > 1) ? filesystem::path(argv[1])
                                                    : filesystem::path("models/hea_10elt.json");
@@ -62,8 +63,13 @@ int main(int argc, char** argv)
 
     opt.set_objective(hv, ResponseOptimization::Sense::Fixed, HV_target);
     opt.set_relative_tolerance(1e-2f);
+    // The HEA simplex has a very low feasible ratio; with the default threshold the solver
+    // escalates adaptive oversampling unboundedly and crashes the pinned library. Lower the
+    // ratio threshold and cap the total evaluations so oversampling stays bounded (as in baselines).
+    opt.set_min_feasible_ratio(1e-4f);
     opt.set_iterations(8);
-    opt.set_evaluations_number(6000);
+    opt.set_evaluations_number(48000);
+    opt.set_max_total_evaluations(500000);
 
     cout << "\n=== FIXED HV = " << HV_target << " -> alloy-composition manifold ===\n";
     MatrixR M = opt.perform_response_optimization();

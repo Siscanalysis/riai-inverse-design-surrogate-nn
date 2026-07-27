@@ -65,6 +65,27 @@ table + complexity/eval-budget accounting); (c) a third case or a geopolymer/HEA
 robustness alpha sweep + band-width sensitivity; (e) deeper baseline discussion (add a dedicated NLP/MO method);
 (f) limitations + threats-to-validity section. Recommend (a)+(b)+(f) as the highest-value, lowest-risk additions.
 
+## Round 2 (2026-07-27): fix rest + strictly necessary references
+- **B-5 RESOLVED (fix):** case_b crash root-caused — the HEA simplex's low feasible ratio triggered
+  UNBOUNDED adaptive oversampling into a library crash path (0xC0000409). Fix in case_b (can't touch
+  the pinned lib): `set_min_feasible_ratio(1e-4)` (so oversampling isn't triggered at ratio ~0.005),
+  `set_evaluations_number(48000)` (recover a rich manifold by base sampling, not oversampling),
+  `set_max_total_evaluations(500000)` (hard bound). Added `cout << unitbuf` for crash localization.
+  case_b now runs seeded + deterministic. Case B RE-LOCKED: **183 alloys**, fill **39-99%**, HV~538,
+  |sum-1|=0. Manuscript + fig_hea_parallel updated. (Old 170/44-100% came from the crashing oversample.)
+- **B-3 RESOLVED (implement):** disclosed in Reproducibilidad that the case studies (Sec 3-4) use a
+  larger sampling budget than the 12k controlled comparison (Sec 5).
+- **REFERENCES ADDED (strictly necessary, web-verified):** the metaheuristic panel + library were named
+  but unattributed. Added: pymoo (Blank & Deb 2020, IEEE Access 8:89497-89509), GA (Goldberg 1989),
+  DE (Storn & Price 1997, JGO 11:341-359), PSO (Kennedy & Eberhart 1995, ICNN'95), CMA-ES (Hansen &
+  Ostermeier 2001, Evol Comput 9:159-195), OpenNN (Artelnics, software). Cited at Sec 5 + Reproducibilidad.
+  Bibliography reordered alphabetically (9 entries). All resolve, no undefined-citation warnings.
+- **Still OPEN (need user / cannot fabricate):**
+  - G-3 emails: still COMPLETAR@artelnics.com (need the real addresses; S. Scala = Simone Scala).
+  - J-2 canal2022: dataset is correct (Kaggle, adorigueto handle); authors "Canal, G.; Borille, A.V."
+    still web-UNVERIFIED. Kept the reference; user to confirm the "cite this dataset" block on Kaggle.
+  - J-3 scala2026idc: companion unpublished; add arXiv/preprint id when available.
+
 ## Verified-consistent (no action)
 - tab:base (CNC) matches baselines_cnc.csv: 7.6/99.8/0.055, 23.1/99.96/0.094, 4.2/78.6/0.278. (Aggregate stats; stable.)
 - tab:exact fully matches baselines_cnc_exact.csv + pymoo_cnc_exact.csv (generated this session).
