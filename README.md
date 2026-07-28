@@ -98,4 +98,14 @@ traces to that run. The `pymoo` panel is seeded independently (`seed=1`).
 ## Status
 Case A, Case B, the honest baselines (rejection +/- repair, ours, pymoo scalar + exact panels)
 and the extrapolation analysis are complete and reproducible at the 12k-eval budget under seed=1.
-`RESULTS.md` documents the produced numbers and tables.
+
+## License
+The original code, scripts and data of this repository are released under the **MIT License**
+(see `LICENSE`). The vendored OpenNN headers under `rerun/_vendor/opennn/` remain under their
+own license (GNU LGPL v3), as stated in their file headers.
+
+## Funding
+Funded by the European Union (Marie Skłodowska-Curie Grant Agreement no. 101169541 — NEUTEN).
+Views and opinions expressed are however those of the author(s) only and do not necessarily
+reflect those of the European Union or the European Research Executive Agency (REA). Neither
+the European Union nor the granting authority can be held responsible for them.
