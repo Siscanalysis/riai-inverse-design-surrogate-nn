@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Generate manuscript figures from the rerun/out CSVs. Output: PDF next to this file."""
+"""Generate the manifold figures from the rerun/out CSVs. Output: rerun/figs/*.pdf.
+Prereqs: run case_a_cnc.exe and case_b_hea.exe first (they write out/cnc_manifold.csv
+and out/hea_manifold.csv). Run:  python gen_figs.py"""
 import csv, os, math
 import numpy as np
 import matplotlib
@@ -8,7 +10,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT  = os.path.normpath(os.path.join(HERE, "..", "..", "rerun", "out"))
+OUT  = os.path.join(HERE, "out")
+FIGS = os.path.join(HERE, "figs")
+os.makedirs(FIGS, exist_ok=True)
 
 def load(path):
     with open(path, newline="") as f:
@@ -32,7 +36,7 @@ ax.set_xlabel("Cutting force $F$ [N]  (minimize $\\rightarrow$)")
 ax.set_ylabel("MRR  (maximize $\\uparrow$)")
 ax.set_title("CNC: mixed-sense trade-off on the fixed-$R_a$ manifold")
 cb = fig.colorbar(sc, ax=ax); cb.set_label("robustness $S$ (lower = more robust)")
-fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig_cnc_tradeoff.pdf")); plt.close(fig)
+fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig_cnc_tradeoff.pdf")); plt.close(fig)
 
 # ---------- Case A : 3-D manifold in the three continuous levers ----------
 fig = plt.figure(figsize=(5.0, 4.0)); ax = fig.add_subplot(111, projection="3d")
@@ -41,7 +45,7 @@ p = ax.scatter(cnc["cutting_speed"], cnc["feed"], cnc["depth_of_cut"],
 ax.set_xlabel("$v_c$ [m/min]"); ax.set_ylabel("$f$ [mm/rev]"); ax.set_zlabel("$a_p$ [mm]")
 ax.set_title("Fixed-$R_a$ recipe manifold (2-D surface in 3 levers)")
 cb = fig.colorbar(p, ax=ax, shrink=0.6, pad=0.1); cb.set_label("$F$ [N]")
-fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig_cnc_manifold3d.pdf")); plt.close(fig)
+fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig_cnc_manifold3d.pdf")); plt.close(fig)
 
 # ---------- Case B : HEA parallel coordinates of the 10 fractions ----------
 hea, fields = load(os.path.join(OUT, "hea_manifold.csv"))
@@ -60,16 +64,6 @@ ax.set_ylabel("atomic fraction")
 ax.set_title("HEA: alloy-composition manifold at fixed hardness (parallel coords)")
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm); sm.set_array([])
 cb = fig.colorbar(sm, ax=ax); cb.set_label("robustness $S$ (dark = robust)")
-fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig_hea_parallel.pdf")); plt.close(fig)
+fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig_hea_parallel.pdf")); plt.close(fig)
 
-# ---------- Case B : robustness landscape (two dominant elements) ----------
-# pick the two highest-variance fractions for a 2-D projection
-var = X.var(axis=0); i1, i2 = np.argsort(-var)[:2]
-fig, ax = plt.subplots(figsize=(5.0, 3.6))
-sc = ax.scatter(X[:, i1], X[:, i2], c=sens, cmap="viridis_r", s=18)
-ax.set_xlabel(f"{elems[i1]} fraction"); ax.set_ylabel(f"{elems[i2]} fraction")
-ax.set_title("HEA manifold projection, colored by robustness")
-cb = fig.colorbar(sc, ax=ax); cb.set_label("robustness $S$ (dark = robust)")
-fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig_hea_projection.pdf")); plt.close(fig)
-
-print("wrote:", [f for f in os.listdir(HERE) if f.endswith(".pdf")])
+print("wrote:", sorted(f for f in os.listdir(FIGS) if f.endswith(".pdf")))

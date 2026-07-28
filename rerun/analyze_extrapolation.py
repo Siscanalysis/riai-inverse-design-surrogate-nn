@@ -98,7 +98,8 @@ try:
     ax[1].set_title("Extrapolacion: mas a la izquierda = mas seguro")
     for a in ax: a.legend(fontsize=8); a.grid(alpha=0.3)
     fig.tight_layout()
-    outpdf = os.path.join(HERE, "..", "paper", "figs", f"fig_extrapolation_{CASE}.pdf")
+    figs_dir = os.path.join(HERE, "figs"); os.makedirs(figs_dir, exist_ok=True)
+    outpdf = os.path.join(figs_dir, f"fig_extrapolation_{CASE}.pdf")
     fig.savefig(outpdf); print(f"wrote {os.path.normpath(outpdf)}")
 except Exception as e:
     print(f"[figure skipped: {e}]")
