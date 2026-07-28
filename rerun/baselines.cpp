@@ -48,6 +48,8 @@ struct Case {
     string target_output;        // fixed output name
     bool   simplex = false;      // HEA: sum of inputs == 1
     int    pctile = 55;          // reachable target percentile
+    string secondary;            // mixed-sense secondary objective (empty = none)
+    bool   secondary_max = false;// maximize (true) or minimize (false) the secondary
 };
 
 static Index out_index(const vector<Variable>& outs, const string& n) {
@@ -103,8 +105,9 @@ int main(int argc, char** argv)
     set_seed(1);   // fixed seed => the manuscript numbers are fully reproducible
     const string which = (argc > 1) ? argv[1] : "cnc";
     Case C;
-    if (which == "hea") C = { "hea", "models/hea_10elt.json", "HV", true, 60 };
-    else                C = { "cnc", "models/cnc_multi.json", "Ra", false, 55 };
+    if (which == "hea")        C = { "hea",   "models/hea_10elt.json",   "HV", true,  60, "",              false };
+    else if (which == "steel") C = { "steel", "models/steel_multi.json", "tensile_strength_MPa", false, 55, "elongation_pct", true };
+    else                       C = { "cnc",   "models/cnc_multi.json",   "Ra", false, 55, "F",             false };
 
     filesystem::create_directories("out");
     cout << unitbuf << fixed << setprecision(4);
@@ -332,28 +335,32 @@ int main(int argc, char** argv)
              << "; below that band the rejection set is empty.)\n";
     }
 
-    // ---- Mixed-sense optimization (CNC only): FIX Ra + MINIMIZE F ----
+    // ---- Mixed-sense optimization: FIX target + {MIN|MAX} a secondary objective ----
     // The pure fixed-target above has nothing to optimize, so an optimizer cannot beat a
-    // sampler. Here there IS a secondary objective (min F), and ours (contraction toward the
-    // objective) should reach a lower best-feasible F than rejection (uniform sampling) at
-    // equal/less true budget.
-    if (!C.simplex) {
-        const Index ff = out_index(out_vars, "F");
+    // sampler. Here there IS a secondary objective (CNC: minimize F; steel: maximize
+    // elongation), and ours (contraction toward the objective) should reach a better
+    // best-feasible secondary than rejection (uniform sampling) at equal/less true budget.
+    if (!C.simplex && !C.secondary.empty()) {
+        const Index ff = out_index(out_vars, C.secondary);
         if (ff >= 0) {
-            auto best_feasible_F = [&](const MatrixR& X) {
-                if (!X.rows()) return 1e30;
+            const bool maxi = C.secondary_max;
+            const double WORST = maxi ? -1e30 : 1e30;
+            auto better = [&](double a, double b){ return maxi ? max(a,b) : min(a,b); };
+            auto best_feasible = [&](const MatrixR& X) {
+                if (!X.rows()) return WORST;
                 const MatrixR Y = opt.calculate_outputs(X);
-                double m = 1e30;
+                double m = WORST;
                 for (Index r = 0; r < X.rows(); ++r)
-                    if (fabs(Y(r, ok) - target) <= band) m = min(m, (double)Y(r, ff));
+                    if (fabs(Y(r, ok) - target) <= band) m = better(m, (double)Y(r, ff));
                 return m;
             };
             const MatrixR Xr = opt.calculate_random_inputs(domain, BUDGET);
-            const double f_reject = best_feasible_F(Xr);
+            const double sec_reject = best_feasible(Xr);
 
             opt.clear_objectives(); opt.clear_formula_constraints();
             opt.set_objective(C.target_output, ResponseOptimization::Sense::Fixed, target);
-            opt.set_objective("F", ResponseOptimization::Sense::Minimize);
+            opt.set_objective(C.secondary, maxi ? ResponseOptimization::Sense::Maximize
+                                                : ResponseOptimization::Sense::Minimize);
             opt.set_relative_tolerance(rel_tol); opt.set_min_feasible_ratio(1e-4f);
             opt.set_iterations(6); opt.set_evaluations_number((int)(BUDGET/6));
             opt.set_max_total_evaluations((Index)(BUDGET*8));
@@ -361,16 +368,20 @@ int main(int argc, char** argv)
             try { Mo = opt.perform_response_optimization(); }
             catch (const exception& e) { cout << "  [ours mixed-sense failed: " << e.what() << "]\n"; }
             const long ev_ours = (long)opt.get_evaluations_used();
-            double f_ours = 1e30;
+            double sec_ours = WORST;
             for (Index r = 0; r < Mo.rows(); ++r)
-                if (fabs(Mo(r, n_in + ok) - target) <= band) f_ours = min(f_ours, (double)Mo(r, n_in + ff));
+                if (fabs(Mo(r, n_in + ok) - target) <= band) sec_ours = better(sec_ours, (double)Mo(r, n_in + ff));
 
-            cout << "\n-- Mixed-sense (fix Ra + minimize F): best feasible F (lower=better) --\n";
-            cout << "   rejection (sampler): F=" << f_reject << "  (evals " << BUDGET << ")\n";
-            cout << "   ours (optimizer):    F=" << f_ours   << "  (trueEvals " << ev_ours << ")\n";
+            const char* dir = maxi ? "maximize" : "minimize";
+            const char* cmp = maxi ? "higher=better" : "lower=better";
+            cout << "\n-- Mixed-sense (fix " << C.target_output << " + " << dir << " " << C.secondary
+                 << "): best feasible " << C.secondary << " (" << cmp << ") --\n";
+            cout << "   rejection (sampler): " << C.secondary << "=" << sec_reject << "  (evals " << BUDGET << ")\n";
+            cout << "   ours (optimizer):    " << C.secondary << "=" << sec_ours   << "  (trueEvals " << ev_ours << ")\n";
             ofstream mf("out/baselines_" + C.name + "_mixedsense.csv");
-            mf << "method,best_F,evals\nrejection," << f_reject << "," << BUDGET
-               << "\nours," << f_ours << "," << ev_ours << "\n";
+            mf << "method,secondary,direction,best_value,evals\n"
+               << "rejection," << C.secondary << "," << dir << "," << sec_reject << "," << BUDGET << "\n"
+               << "ours," << C.secondary << "," << dir << "," << sec_ours << "," << ev_ours << "\n";
         }
     }
 

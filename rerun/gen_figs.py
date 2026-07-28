@@ -66,4 +66,23 @@ sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm); sm.set_array([])
 cb = fig.colorbar(sm, ax=ax); cb.set_label("robustness $S$ (dark = robust)")
 fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig_hea_parallel.pdf")); plt.close(fig)
 
+# ---------- Case C : steel ductility-cost Pareto on the fixed-UTS manifold (T=27 C) ----------
+steel_manifold = os.path.join(OUT, "steel_manifold.csv")
+steel_pareto   = os.path.join(OUT, "steel_pareto.csv")
+if os.path.exists(steel_manifold) and os.path.exists(steel_pareto):
+    man, _ = load(steel_manifold)
+    par, _ = load(steel_pareto)
+    fig, ax = plt.subplots(figsize=(5.2, 3.7))
+    sc = ax.scatter(man["cost"], man["elongation"], c=man["sensitivity_elong"], cmap="viridis",
+                    s=9, alpha=0.45, label="fixed-UTS manifold")
+    order = np.argsort(par["cost"])
+    ax.plot(par["cost"][order], par["elongation"][order], "-o", color="crimson",
+            ms=5, lw=1.6, label="ductility-cost Pareto")
+    ax.set_xlabel("alloying cost proxy  (minimize $\\rightarrow$)")
+    ax.set_ylabel("elongation [%]  (maximize $\\uparrow$)")
+    ax.set_title("Steel: ductility-cost Pareto on the fixed-UTS manifold ($T=27^\\circ$C)")
+    cb = fig.colorbar(sc, ax=ax); cb.set_label("robustness $S$ (lower = more robust)")
+    ax.legend(loc="lower right", fontsize=8, framealpha=0.9)
+    fig.tight_layout(); fig.savefig(os.path.join(FIGS, "fig_steel_pareto.pdf")); plt.close(fig)
+
 print("wrote:", sorted(f for f in os.listdir(FIGS) if f.endswith(".pdf")))

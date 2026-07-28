@@ -20,8 +20,11 @@ centrality** selection over the manifold.
 rerun/                reproducible experiments
   case_a_cnc.cpp        Case A - CNC turning AISI H13 (fix Ra / min F; MRR as trade-off)
   case_b_hea.cpp        Case B - HEA hardness on the composition simplex (fix HV)
-  baselines.cpp         honest baselines (reject +/- repair, ours) + exact-target sweep
-  pymoo_baselines.py    metaheuristic panel (GA/DE/PSO/CMA-ES), scalar + exact
+  case_c_steel.cpp      Case C - low-alloy steel (fix UTS at T=27C; ductility vs cost Pareto;
+                          nonlinear weldability CEV + affine cost repair)
+  train_steel.cpp       trains the Case C surrogate -> models/steel_multi.{json,bin}
+  baselines.cpp         honest baselines (reject +/- repair, ours) + exact-target sweep [cnc|hea|steel]
+  pymoo_baselines.py    metaheuristic panel (GA/DE/PSO/CMA-ES), scalar + exact [cnc|hea|steel]
   analyze_extrapolation.py   extrapolation analysis -> figs/fig_extrapolation_*.pdf
   gen_figs.py           manifold figures -> figs/*.pdf
   models/               trained surrogates: each <name>.json REQUIRES its <name>.bin sibling
@@ -40,10 +43,14 @@ adaptive width search) over the corresponding `benchmark_datasets` entries.
 | `cnc_multi` | (v_c, f, a_p, VB) -> (Ra, F) | 4->32->2 | mean ~0.84 (F~0.99, Ra~0.7) |
 | `hea_10elt` | 10 atomic fractions -> HV | 10->37->1 | ~0.87 |
 | `hea_6elt`  | 6 atomic fractions (AlCoCrCuFeNi) -> HV | 6->2->1 | ~0.90 |
+| `steel_multi` | 13 composition + temperature -> (yield, UTS, elongation, RA) | 14->32->4 | 0.94 UTS, 0.93 yield, 0.84 ductility |
 
 Data sources: Case A CNC turning dataset (AISI H13) — Canal & Borille, Kaggle,
 DOI 10.34740/kaggle/ds/2205074. Case B HEA hardness — Yang et al., Acta Materialia 222
-(2022) 117431, DOI 10.1016/j.actamat.2021.117431.
+(2022) 117431, DOI 10.1016/j.actamat.2021.117431. Case C low-alloy steel tensile tests —
+NIMS MatNavi, described by Xiong, Zhang & Shi, Sci. China Tech. Sci. 63 (2020) 1247,
+DOI 10.1007/s11431-020-1599-5 (NN+GA composition-design baseline: Zhu, Liang & Zou,
+Materials 13 (2020) 5316, DOI 10.3390/ma13235316).
 
 > Note: `*.json` holds the architecture; the weights live in the sibling `*.bin`
 > (same basename). Keep them together or the net loads with uninitialized weights.
@@ -73,13 +80,18 @@ cmake --build rerun/build --config Release
 cd rerun
 ./build/Release/case_a_cnc.exe        # writes out/cnc_*.csv
 ./build/Release/case_b_hea.exe        # writes out/hea_manifold.csv
+./build/Release/train_steel.exe       # trains models/steel_multi.{json,bin} (needed by Case C)
+./build/Release/case_c_steel.exe      # writes out/steel_{manifold,pareto,multitarget,...}.csv
 ./build/Release/baselines.exe cnc     # honest baselines (reject +/- repair, ours) + feasible dumps
                                       #   + exact-target sweep (out/baselines_cnc_exact.csv)
 ./build/Release/baselines.exe hea     # also exports models/<case>_surrogate.py for pymoo
+./build/Release/baselines.exe steel   # steel exact-target sweep (out/baselines_steel_exact.csv)
 python pymoo_baselines.py cnc         # scalar min-F panel: GA/DE/PSO/CMA-ES, same repair + budget
 python pymoo_baselines.py hea
+python pymoo_baselines.py steel       # steel: fix UTS + maximize elongation (same repair + budget)
 python pymoo_baselines.py cnc exact   # exact-target panel: GA/DE/PSO/CMA-ES minimize |f-c|,
                                       #   count solutions AT target + diversity (out/pymoo_cnc_exact.csv)
+python pymoo_baselines.py steel exact # steel exact-target panel (out/pymoo_steel_exact.csv)
 python analyze_extrapolation.py cnc   # extrapolation analysis -> figs/fig_extrapolation_cnc.pdf
 ```
 
@@ -96,8 +108,11 @@ The C++ drivers call `opennn::set_seed(1)` at startup, so `baselines`, `case_a_c
 traces to that run. The `pymoo` panel is seeded independently (`seed=1`).
 
 ## Status
-Case A, Case B, the honest baselines (rejection +/- repair, ours, pymoo scalar + exact panels)
+Case A, Case B, Case C, the honest baselines (rejection +/- repair, ours, pymoo scalar + exact panels)
 and the extrapolation analysis are complete and reproducible at the 12k-eval budget under seed=1.
+Case C (low-alloy steel): fixed-UTS composition manifold (5100 alloys at T=27C), ductility-vs-cost
+Pareto (8 alloys), nonlinear weldability + affine cost repair, and a second box-domain confirmation
+of the exact-target collapse (rejection 553->0 as the band shrinks 1e-2->1e-6; ours stays populated).
 
 ## License
 The original code, scripts and data of this repository are released under the **MIT License**
