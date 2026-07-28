@@ -43,12 +43,13 @@ adaptive width search) over the corresponding `benchmark_datasets` entries.
 | `cnc_multi` | (v_c, f, a_p, VB) -> (Ra, F) | 4->32->2 | mean ~0.84 (F~0.99, Ra~0.7) |
 | `hea_10elt` | 10 atomic fractions -> HV | 10->37->1 | ~0.87 |
 | `hea_6elt`  | 6 atomic fractions (AlCoCrCuFeNi) -> HV | 6->2->1 | ~0.90 |
-| `steel_multi` | 13 composition + temperature -> (yield, UTS, elongation, RA) | 14->32->4 | 0.94 UTS, 0.93 yield, 0.84 ductility |
+| `steel_multi` | 13 composition + temperature -> (yield, UTS, elongation, RA) | 14->32->4 | 0.94 UTS, 0.93 yield, 0.81-0.83 ductility |
 
 Data sources: Case A CNC turning dataset (AISI H13) — Canal & Borille, Kaggle,
 DOI 10.34740/kaggle/ds/2205074. Case B HEA hardness — Yang et al., Acta Materialia 222
 (2022) 117431, DOI 10.1016/j.actamat.2021.117431. Case C low-alloy steel tensile tests —
-NIMS MatNavi, described by Xiong, Zhang & Shi, Sci. China Tech. Sci. 63 (2020) 1247,
+NIMS MatNavi materials database (https://mits.nims.go.jp/), public Kaggle mirror; a related
+ML study on NIMS steel data is Xiong, Zhang & Shi, Sci. China Tech. Sci. 63 (2020) 1247-1255,
 DOI 10.1007/s11431-020-1599-5 (NN+GA composition-design baseline: Zhu, Liang & Zou,
 Materials 13 (2020) 5316, DOI 10.3390/ma13235316).
 
