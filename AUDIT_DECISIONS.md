@@ -105,6 +105,17 @@ robustness alpha sweep + band-width sensitivity; (e) deeper baseline discussion 
 - **STILL OPEN (unchanged, need user):** G-3 emails; J-2 confirm canal2022 DOI on Kaggle;
   J-3 scala2026idc preprint id; G-2 content expansion (planned).
 
+## Round 4 (2026-07-28): user-provided + DOI verification
+- **G-3 RESOLVED:** author emails set — simonescala@artelnics.com (S. Scala, corresponding),
+  robertolopez@artelnics.com (R. Lopez).
+- **J-2 RESOLVED (verified via DataCite):** the manuscript DOI 10.34740/kaggle/dsv/3702243 was WRONG
+  (404 at doi.org). Correct, resolving DOI = **10.34740/kaggle/ds/2205074** (DataCite record: title
+  "CNC turning: roughness, forces and tool wear", creators Andre Dorigueto Canal + Anderson Vicente
+  Borille, 2022, Kaggle). Fixed the DOI + exact title in the bib. Confirms J-5 names + year.
+- **NOTE:** manuscript.pdf was locked (viewer open) during this edit; .tex verified clean under a temp
+  jobname (7 pp, 0 undefined). Rebuild the PDF after closing the viewer.
+- **STILL OPEN:** J-3 scala2026idc preprint id; G-2 content expansion.
+
 ## Verified-consistent (no action)
 - tab:base (CNC) matches baselines_cnc.csv: 7.6/99.8/0.055, 23.1/99.96/0.094, 4.2/78.6/0.278. (Aggregate stats; stable.)
 - tab:exact fully matches baselines_cnc_exact.csv + pymoo_cnc_exact.csv (generated this session).
