@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Third-party components: the vendored OpenNN headers under rerun/_vendor/opennn/
-are part of the OpenNN library (https://github.com/Artelnics/opennn) and remain
-under their own license (GNU Lesser General Public License v3), as stated in
-their file headers. The MIT terms above apply to the original code, scripts and
-data of this repository, not to those third-party files.
