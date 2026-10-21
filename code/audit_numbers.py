@@ -9,6 +9,8 @@ mismatch prints as FAIL with both values. Sources:
     out/summary.json     analyze.py        medians over the 10 seeds, per case/task/method
     out/kernel_checks.json  check_kernel.py   the enumerated catalogue and the measured contrast
     out/spec_error.json  check_spec_error.py  each surrogate's error on its own specification
+    out/fit.json         check_fit.py      the case table's architecture and test R^2 columns
+    out/isolation.json   check_isolation.py   the a-priori isolation test of Section 7.3
     out/plausibility.json  check_plausibility.py  the concrete verisimilitude filter
 
 Rewritten on 2026-10-20 (audit finding B-12): the previous claim set predated the Round 3 scope
@@ -31,6 +33,8 @@ def load(name):
 S = load("summary.json")
 K = load("kernel_checks.json")
 E = load("spec_error.json")
+F = load("fit.json")
+I = load("isolation.json")
 PLAUS = (load("plausibility.json") or {}).get("medians")
 
 
@@ -50,11 +54,39 @@ def spec(case, field, window="+-25%"):
     return E[case]["windows"][window][field] if E else None
 
 
+def fit(case, key, output=None):
+    if not F or case not in F:
+        return None
+    return F[case]["r2_test"].get(output) if output else F[case].get(key)
+
+
+def isolation(target, key):
+    return None if not I else I["targets"].get(str(target), {}).get(key)
+
+
 CLAIMS = [
     # ---- Section 5, case table and protocol -------------------------------------------
     ("cases tab", "error del sustituto, hormigón", 7.6, spec("concrete", "median_pct"), 0.05),
     ("cases tab", "error del sustituto, acero", 4.6, spec("steel", "median_pct"), 0.05),
     ("cases tab", "error del sustituto, núcleo", 5.8, spec("kernel", "median_pct"), 0.05),
+    ("cases tab", "neuronas ocultas, hormigón", 12, fit("concrete", "hidden"), 0),
+    ("cases tab", "neuronas ocultas, acero", 16, fit("steel", "hidden"), 0),
+    ("cases tab", "neuronas ocultas, núcleo", 24, fit("kernel", "hidden"), 0),
+    ("cases tab", "filas por peso, hormigón", 9.6, fit("concrete", "rows_per_weight"), 0.05),
+    ("cases tab", "filas por peso, acero", 3.0, fit("steel", "rows_per_weight"), 0.05),
+    ("cases tab", "filas por peso, núcleo", 12.4, fit("kernel", "rows_per_weight"), 0.05),
+    ("cases tab", "R2 especificación, hormigón", 0.85,
+     fit("concrete", None, "CompressiveStrength_MPa"), 0.005),
+    ("cases tab", "R2 especificación, acero", 0.87,
+     fit("steel", None, "tensile_strength_MPa"), 0.005),
+    ("cases tab", "R2 especificación, núcleo", 0.99, fit("kernel", None, "log10_duration"), 0.005),
+    ("cases tab", "R2 asentamiento, hormigón", 0.54, fit("concrete", None, "Slump_mm"), 0.005),
+    ("cases tab", "R2 otras salidas, acero (máx)", 0.85,
+     fit("steel", None, "proof_stress_MPa"), 0.005),
+    ("cases tab", "R2 otras salidas, acero (mín)", 0.74,
+     fit("steel", None, "reduction_area_pct"), 0.005),
+    ("cases tab", "R2 ocupación, núcleo", 0.88,
+     fit("kernel", None, "achieved_occupancy"), 0.005),
 
     # ---- 6.1 set recovery --------------------------------------------------------------
     ("6.1", "rechazo válidas 1e-5 hormigón", 3.5, m("sample", "concrete", "rejection", "valid_1e-05"), 0.05),
@@ -134,6 +166,16 @@ CLAIMS = [
     ("7.2", "DC banda propagaciones", 1492810, m("single", "kernel", "dc_band", "evaluations"), 5000),
     ("7.2", "DC O igualada propagaciones", 79841, m("single", "kernel", "dc_objective-matched", "evaluations"), 500),
     ("7.2", "CMA-ES banda propagaciones", 2186751, m("single", "kernel", "cmaes-band", "evaluations"), 5000),
+
+    # ---- 7.3 the a-priori isolation test ------------------------------------------------
+    ("7.3", "objetivos con óptimo aislado", 5, (I or {}).get("isolated_count"), 0),
+    ("7.3", "objetivos probados", 8, (I or {}).get("targets_tried"), 0),
+    ("7.3", "vecinos dentro de la banda a 8000", 0, isolation(8000, "neighbours_in_band"), 0),
+    ("7.3", "vecinos admisibles del óptimo a 8000", 8, isolation(8000, "neighbours"), 0),
+    ("7.3", "configuraciones en la banda a 8000", 63, isolation(8000, "in_band"), 0),
+    ("7.3", "vecinos dentro de la banda a 12000", 1, isolation(12000, "neighbours_in_band"), 0),
+    ("7.3", "vecinos dentro de la banda a 16000", 1, isolation(16000, "neighbours_in_band"), 0),
+    ("7.3", "vecinos dentro de la banda a 30000", 1, isolation(30000, "neighbours_in_band"), 0),
 
     # ---- 7.3 set recovery on the catalogue ---------------------------------------------
     ("7.3", "reparación banda distintas", 36, m("sample", "kernel", "repair_band", "distinct"), 0.5),

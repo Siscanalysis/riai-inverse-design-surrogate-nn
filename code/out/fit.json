@@ -1,0 +1,34 @@
+{
+  "concrete": {
+    "rows": 1395,
+    "hidden": 12,
+    "parameters": 146,
+    "rows_per_weight": 9.55,
+    "r2_test": {
+      "CompressiveStrength_MPa": 0.8549,
+      "Slump_mm": 0.5396
+    }
+  },
+  "steel": {
+    "rows": 915,
+    "hidden": 16,
+    "parameters": 308,
+    "rows_per_weight": 2.97,
+    "r2_test": {
+      "proof_stress_MPa": 0.8519,
+      "tensile_strength_MPa": 0.8667,
+      "elongation_pct": 0.7628,
+      "reduction_area_pct": 0.7446
+    }
+  },
+  "kernel": {
+    "rows": 3311,
+    "hidden": 24,
+    "parameters": 266,
+    "rows_per_weight": 12.45,
+    "r2_test": {
+      "log10_duration": 0.9867,
+      "achieved_occupancy": 0.8799
+    }
+  }
+}

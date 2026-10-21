@@ -71,6 +71,8 @@ code/
   analyze.py            metrics -> out/metrics_*.csv, out/summary.json
   check_kernel.py       the enumerated catalogue, recall/precision, measured-duration contrast
   check_spec_error.py   each surrogate's error on its own specification -> out/spec_error.json
+  check_fit.py          the case table's architecture and test R^2 columns -> out/fit.json
+  check_isolation.py    the a-priori isolation test of the catalogue      -> out/isolation.json
   check_plausibility.py the concrete verisimilitude and data-support filter
   make_tables.py        the article's result tables
   audit_numbers.py      checks every number quoted in the article against the stored metrics
@@ -116,6 +118,8 @@ python baselines.py concrete all      # likewise steel, kernel
 python analyze.py
 python check_kernel.py
 python check_spec_error.py            # steel needs the MatNavi table, see DATA.md
+python check_fit.py                   # likewise for the steel row
+python check_isolation.py
 python check_plausibility.py
 python make_tables.py
 python figs.py
@@ -124,8 +128,13 @@ python audit_numbers.py               # must print "0 mismatch(es), 0 without a 
 
 Seeds are fixed (1 to 10); wall-clock times vary. The trained surrogates are committed, so
 `train_surrogates.exe` is only needed to rebuild them from scratch. The metrics under `code/out/`
-are committed too, so the tables, the figures and the number audit all run without repeating the
-searches.
+are committed too, and so are the seed-1 point files that `figs.py` opens, so **the tables, the
+figures and the number audit all run from this checkout** without repeating any search. The rest of
+the per-point output, several hundred megabytes of it, is not tracked.
+
+`audit_numbers.py` checks 107 quantitative claims from the article against the stored metrics,
+including the case table's architecture and R² columns and the isolation sweep. It exits non-zero
+on any mismatch, and prints `MISS` rather than passing silently when a metric file is absent.
 
 ## Surrogate provenance
 

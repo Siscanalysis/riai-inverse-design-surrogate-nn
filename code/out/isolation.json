@@ -1,0 +1,71 @@
+{
+  "admissible": 4680,
+  "band": 0.01,
+  "targets": {
+    "4000": {
+      "in_band": 22,
+      "best_objective": 0.9057,
+      "neighbours": 8,
+      "neighbours_in_band": 0,
+      "isolated": true
+    },
+    "6000": {
+      "in_band": 32,
+      "best_objective": 0.7682,
+      "neighbours": 10,
+      "neighbours_in_band": 0,
+      "isolated": true
+    },
+    "8000": {
+      "in_band": 63,
+      "best_objective": 0.8292,
+      "neighbours": 8,
+      "neighbours_in_band": 0,
+      "isolated": true
+    },
+    "10000": {
+      "in_band": 20,
+      "best_objective": 0.8841,
+      "neighbours": 7,
+      "neighbours_in_band": 0,
+      "isolated": true
+    },
+    "12000": {
+      "in_band": 41,
+      "best_objective": 0.8816,
+      "neighbours": 12,
+      "neighbours_in_band": 1,
+      "isolated": false
+    },
+    "16000": {
+      "in_band": 15,
+      "best_objective": 1.0068,
+      "neighbours": 8,
+      "neighbours_in_band": 1,
+      "isolated": false
+    },
+    "20000": {
+      "in_band": 50,
+      "best_objective": 0.9703,
+      "neighbours": 9,
+      "neighbours_in_band": 0,
+      "isolated": true
+    },
+    "30000": {
+      "in_band": 15,
+      "best_objective": 1.0326,
+      "neighbours": 7,
+      "neighbours_in_band": 1,
+      "isolated": false
+    }
+  },
+  "isolated_count": 5,
+  "targets_tried": 8,
+  "isolated_targets": [
+    4000,
+    6000,
+    8000,
+    10000,
+    20000
+  ]
+}

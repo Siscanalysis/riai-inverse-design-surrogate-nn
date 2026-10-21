@@ -1,9 +1,18 @@
 # Regenerable experiment output. The per-point CSVs run to hundreds of megabytes; the metrics
 # they reduce to (code/out/*.json, metrics_*.csv, runs_*.csv) ARE tracked, so the tables, the
 # figures and audit_numbers.py all run without repeating the runs.
-code/out/baselines/
-code/out/sample/
-code/out/solve/
+# Written as dir/* with negations, so git still descends and the exceptions below apply: the
+# seed-1 point files that figs.py opens ARE tracked, so every figure regenerates from this
+# checkout. Everything else in these folders is hundreds of megabytes of per-point output.
+code/out/baselines/*
+!code/out/baselines/kernel_sample_enumeration_s1.csv
+!code/out/baselines/kernel_single_slsqp_relaxed-band_s1.csv
+!code/out/baselines/kernel_single_slsqp_round-band_s1.csv
+code/out/sample/*
+!code/out/sample/concrete_s1.csv
+!code/out/sample/steel_s1.csv
+code/out/solve/*
+!code/out/solve/*_bi_s1.csv
 code/out/stale_*/
 code/out/log_*.txt
 
