@@ -8,6 +8,8 @@ code/out/baselines/*
 !code/out/baselines/kernel_sample_enumeration_s1.csv
 !code/out/baselines/kernel_single_slsqp_relaxed-band_s1.csv
 !code/out/baselines/kernel_single_slsqp_round-band_s1.csv
+!code/out/baselines/concrete_bi_nsga2_s1.csv
+!code/out/baselines/steel_bi_nsga2_s1.csv
 code/out/sample/*
 !code/out/sample/concrete_s1.csv
 !code/out/sample/steel_s1.csv
