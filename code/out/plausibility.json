@@ -1,0 +1,46 @@
+{
+ "bands": {
+  "sand": [
+   0.3899242460103999,
+   0.5401459854014599
+  ],
+  "sp": [
+   0.0,
+   2.0000000000000004
+  ],
+  "paste": [
+   0.25777780884454377,
+   0.38476800770077224
+  ]
+ },
+ "support_radius": 0.24842638060767958,
+ "medians": {
+  "rejection": {
+   "evaluations": 153514.5,
+   "valid": 3.5,
+   "plausible": 3.0,
+   "supported": 1.0,
+   "volume_ok": 1.0,
+   "% plausible": 85.7,
+   "% supported": 28.6
+  },
+  "repair": {
+   "evaluations": 153514.5,
+   "valid": 1697.0,
+   "plausible": 1277.0,
+   "supported": 171.5,
+   "volume_ok": 1.0,
+   "% plausible": 75.3,
+   "% supported": 10.1
+  },
+  "slsqp": {
+   "evaluations": 153511.5,
+   "valid": 2897.5,
+   "plausible": 2479.0,
+   "supported": 435.0,
+   "volume_ok": 1.0,
+   "% plausible": 85.6,
+   "% supported": 15.0
+  }
+ }
+}

@@ -1,0 +1,9 @@
+case,arm,statement,seed,starts,rows,forwards,jac_calls,jac_sweeps,rounds,seconds
+steel,fd,constraint,1,2000,187,375912,0,0,3,10.271
+steel,analytical,constraint,1,2000,187,50588,24921,124605,3,2.081
+steel,fd,constraint,2,2000,199,373340,0,0,3,10.232
+steel,analytical,constraint,2,2000,199,49573,24280,121400,3,2.028
+concrete,fd,constraint,1,2000,1697,138560,0,0,3,3.528
+concrete,analytical,constraint,1,2000,1691,30594,18172,54516,3,1.056
+concrete,fd,constraint,2,2000,1683,143910,0,0,3,3.503
+concrete,analytical,constraint,2,2000,1681,31340,18596,55788,3,1.127

@@ -1,0 +1,4 @@
+case hea: 10 inputs -> 1 targets; grid 2,4,8,16,32; seeds 1-5
+selected: 16 hidden neurons, seed 5 (mean validation R2 0.8977)
+retrained R2 train/validation/test: 0.9705 | 0.8977 | 0.9420
+after full-range box + clamp, R2 train/validation/test: 0.9706 | 0.8977 | 0.9432

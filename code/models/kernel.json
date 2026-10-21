@@ -1,0 +1,189 @@
+{
+ "Network": {
+  "Task": "Approximation",
+  "TrainingActivationRecomputation": false,
+  "Inputs": {
+   "InputsNumber": 8,
+   "Input": [
+    {
+     "Index": 1,
+     "Text": "TBX",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 2,
+     "Text": "TBY",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 3,
+     "Text": "LOCAL",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 4,
+     "Text": "WPTX",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 5,
+     "Text": "WPTY",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 6,
+     "Text": "VECTOR",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 7,
+     "Text": "UNROLL_FACTOR",
+     "Role": "Input",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 8,
+     "Text": "PADDING",
+     "Role": "Input",
+     "Type": "Binary",
+     "Scaler": "MinimumMaximum",
+     "Categories": "0;1"
+    }
+   ]
+  },
+  "Layers": {
+   "LayersNumber": 5,
+   "Items": [
+    {
+     "Scaling": {
+      "Label": "scaling_layer",
+      "InputDimensions": "8 ",
+      "OutputDimensions": "8 ",
+      "Trainable": false,
+      "Means": "21.6496983 22.0465927 1.04098356 4.07506466 3.33002591 1.79767036 3.96376181 0.378343403 ",
+      "StandardDeviations": "17.3794079 17.6011906 0.741839945 2.54531121 2.50631738 1.02200806 3.00042844 0.485078543 ",
+      "Minimums": "8 8 0 1 1 1 1 0 ",
+      "Maximums": "64 64 2 8 8 4 7 1 ",
+      "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MinimumMaximum",
+      "MinRange": -1,
+      "MaxRange": 1
+     }
+    },
+    {
+     "Dense": {
+      "Label": "dense_layer_1",
+      "InputDimensions": "8 ",
+      "OutputDimensions": "24 ",
+      "Trainable": true,
+      "BatchNormalization": false,
+      "UseBias": true,
+      "Activation": "Tanh",
+      "Gated": false,
+      "TransposedInference": false
+     }
+    },
+    {
+     "Dense": {
+      "Label": "approximation_layer",
+      "InputDimensions": "24 ",
+      "OutputDimensions": "2 ",
+      "Trainable": true,
+      "BatchNormalization": false,
+      "UseBias": true,
+      "Activation": "Identity",
+      "Gated": false,
+      "TransposedInference": false
+     }
+    },
+    {
+     "Unscaling": {
+      "Label": "unscaling_layer",
+      "InputDimensions": "2 ",
+      "OutputDimensions": "2 ",
+      "Trainable": false,
+      "MinRange": -1,
+      "MaxRange": 1,
+      "Neurons": [
+       {
+        "Descriptives": "2.973589897 4.801790237 3.827429771 0.389977783",
+        "Scaler": "MeanStandardDeviation"
+       },
+       {
+        "Descriptives": "0.07599789649 0.9871100187 0.5503542423 0.2399235964",
+        "Scaler": "MeanStandardDeviation"
+       }
+      ]
+     }
+    },
+    {
+     "Clamping": {
+      "Label": "clamping_layer",
+      "InputDimensions": "2 ",
+      "OutputDimensions": "2 ",
+      "Trainable": false,
+      "ClampingMethod": "NoClamping",
+      "LowerBounds": "2.97035 0.0759979 ",
+      "UpperBounds": "4.80179 0.98711 "
+     }
+    }
+   ],
+   "SourceLayers": {
+    "SourceLayer": [
+     {
+      "LayerIndex": 0,
+      "Text": "-1"
+     },
+     {
+      "LayerIndex": 1,
+      "Text": "0"
+     },
+     {
+      "LayerIndex": 2,
+      "Text": "1"
+     },
+     {
+      "LayerIndex": 3,
+      "Text": "2"
+     },
+     {
+      "LayerIndex": 4,
+      "Text": "3"
+     }
+    ]
+   },
+   "TiedWeights": []
+  },
+  "Outputs": {
+   "OutputsNumber": 2,
+   "Output": [
+    {
+     "Index": 1,
+     "Text": "log10_duration",
+     "Role": "Target",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    },
+    {
+     "Index": 2,
+     "Text": "achieved_occupancy",
+     "Role": "Target",
+     "Type": "Numeric",
+     "Scaler": "MeanStandardDeviation"
+    }
+   ]
+  }
+ }
+}

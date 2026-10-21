@@ -1,0 +1,4 @@
+case concrete: 9 inputs -> 2 targets; grid 2,4,8,16,32; seeds 1-5
+selected: 32 hidden neurons, seed 2 (mean validation R2 0.7558)
+retrained R2 train/validation/test: 0.8908;0.8639 | 0.7786;0.7331 | 0.8580;0.5759
+after full-range box + clamp, R2 train/validation/test: 0.8908;0.8639 | 0.7786;0.7331 | 0.8580;0.5759

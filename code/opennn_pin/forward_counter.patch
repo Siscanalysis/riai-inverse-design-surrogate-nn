@@ -1,0 +1,23 @@
+diff --git "C:\\Users\\Artelnics\\Desktop\\experiments\\Papers\\RAI\\new\\code\\opennn_pin\\network_orig.cpp" "C:\\rai_onn\\src\\opennn\\network\\network.cpp"
+index 4d768528b..5facc45b6 100644
+--- "C:\\Users\\Artelnics\\Desktop\\experiments\\Papers\\RAI\\new\\code\\opennn_pin\\network_orig.cpp"
++++ "C:\\rai_onn\\src\\opennn\\network\\network.cpp"
+@@ -769,6 +769,9 @@ Tensor3 Network::calculate_outputs(const Tensor3& inputs_1, const Tensor3& input
+     return outputs;
+ }
+ 
++// RAI experiment instrument (measurement only): counts inference rows.
++std::atomic<long long> rai_forward_rows{0};
++
+ MatrixR Network::calculate_outputs(const vector<TensorView>& input_views)
+ {
+     if (layers.empty() || input_views.empty()) return {};
+@@ -777,6 +780,8 @@ MatrixR Network::calculate_outputs(const vector<TensorView>& input_views)
+ 
+     const Index batch_size = input_views[0].get_shape()[0];
+ 
++    rai_forward_rows += batch_size;
++
+     if (is_gpu())
+     {
+         ForwardPropagation forward_propagation(batch_size, this,

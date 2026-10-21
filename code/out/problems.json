@@ -1,0 +1,73 @@
+{
+  "concrete": {
+    "specification": "CompressiveStrength_MPa", "target": 38, "band": 0,
+    "inputs": ["Cement_kg_m3", "FineAgg_kg_m3", "CoarseAgg_kg_m3", "Water_kg_m3", "WaterReducer_kg_m3", "FlyAsh_kg_m3", "Accelerator_kg_m3", "SilicaFume_kg_m3", "TestAge_days"],
+    "outputs": ["CompressiveStrength_MPa", "Slump_mm"],
+    "lower": [194, 631, 0, 110, 0, 0, 0, 0, 7],
+    "upper": [958, 1638, 1398, 394, 39.2000008, 195, 50, 25, 28],
+    "constraints": [
+      {"expression": "Cement_kg_m3", "condition": "Between", "values": [234, 491]},
+      {"expression": "FineAgg_kg_m3", "condition": "Between", "values": [708, 962]},
+      {"expression": "CoarseAgg_kg_m3", "condition": "Between", "values": [756, 1130]},
+      {"expression": "Water_kg_m3", "condition": "Between", "values": [155, 241]},
+      {"expression": "WaterReducer_kg_m3", "condition": "Between", "values": [0, 8.3]},
+      {"expression": "FlyAsh_kg_m3", "condition": "Between", "values": [0, 87]},
+      {"expression": "TestAge_days", "condition": "Equal", "values": [28]},
+      {"expression": "Accelerator_kg_m3", "condition": "Equal", "values": [0]},
+      {"expression": "SilicaFume_kg_m3", "condition": "Equal", "values": [0]},
+      {"expression": "Slump_mm", "condition": "Between", "values": [160, 210]},
+      {"expression": "Water_kg_m3 / (Cement_kg_m3 + FlyAsh_kg_m3)", "condition": "LessEqual", "values": [0.55]},
+      {"expression": "Cement_kg_m3/3.15 + FlyAsh_kg_m3/2.30 + Water_kg_m3/1.00 + FineAgg_kg_m3/2.65 + CoarseAgg_kg_m3/2.70 + WaterReducer_kg_m3/1.10", "condition": "Between", "values": [970, 1010]}
+    ],
+    "single": [{"expression": "Cement_kg_m3", "sense": "Minimize"}],
+    "bi": [{"expression": "FlyAsh_kg_m3", "sense": "Maximize"}, {"expression": "Cement_kg_m3 + FlyAsh_kg_m3", "sense": "Minimize"}]
+  },
+  "hea": {
+    "specification": "HV", "target": 600, "band": 0,
+    "inputs": ["Al", "Co", "Cr", "Cu", "Fe", "Mn", "Mo", "Ni", "Ti", "V"],
+    "outputs": ["HV"],
+    "lower": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "upper": [0.469999999, 0.428570986, 0.349999994, 0.332666993, 0.57099998, 0.400000006, 0.25, 0.5, 0.332666993, 0.332666993],
+    "constraints": [
+      {"expression": "Al + Co + Cr + Cu + Fe + Mn + Mo + Ni + Ti + V", "condition": "Equal", "values": [1]},
+      {"expression": "Al; Co; Cr; Cu; Fe; Mn; Mo; Ni; Ti; V", "condition": "Cardinality", "values": [5]}
+    ],
+    "single": [{"expression": "(26.982*Al + 58.933*Co + 51.996*Cr + 63.546*Cu + 55.845*Fe + 54.938*Mn + 95.95*Mo + 58.693*Ni + 47.867*Ti + 50.942*V) / (26.982*Al/2.70 + 58.933*Co/8.90 + 51.996*Cr/7.19 + 63.546*Cu/8.96 + 55.845*Fe/7.874 + 54.938*Mn/7.21 + 95.95*Mo/10.28 + 58.693*Ni/8.908 + 47.867*Ti/4.506 + 50.942*V/6.11)", "sense": "Minimize"}],
+    "bi": []
+  },
+  "steel": {
+    "specification": "tensile_strength_MPa", "target": 600, "band": 0,
+    "inputs": ["C", "Si", "Mn", "P", "S", "Ni", "Cr", "Mo", "Cu", "V", "Al", "N", "Nb_Ta", "temperature_C"],
+    "outputs": ["proof_stress_MPa", "tensile_strength_MPa", "elongation_pct", "reduction_area_pct"],
+    "lower": [0.0900000036, 0.180000007, 0.419999987, 0.00600000005, 0.00300000003, 0, 0, 0.00499999989, 0, 0, 0.00200000009, 0.00249999994, 0, 27],
+    "upper": [0.340000004, 0.519999981, 1.48000002, 0.0299999993, 0.0219999999, 0.600000024, 1.30999994, 1.35000002, 0.25, 0.300000012, 0.0500000007, 0.0149999997, 0.00170000002, 650],
+    "constraints": [
+      {"expression": "temperature_C", "condition": "Equal", "values": [27]},
+      {"expression": "C + Mn/6 + (Cr + Mo + V)/5 + (Ni + Cu)/15", "condition": "LessEqual", "values": [0.45]}
+    ],
+    "single": [{"expression": "elongation_pct", "sense": "Maximize"}],
+    "bi": [{"expression": "elongation_pct", "sense": "Maximize"}, {"expression": "Ni + Cr + Mo + Cu + V", "sense": "Minimize"}]
+  },
+  "kernel": {
+    "specification": "log10_duration", "target": 3.90309, "band": 0.01,
+    "inputs": ["TBX", "TBY", "LOCAL", "WPTX", "WPTY", "VECTOR", "UNROLL_FACTOR", "PADDING"],
+    "outputs": ["log10_duration", "achieved_occupancy"],
+    "lower": [8, 8, 0, 1, 1, 1, 1, 0],
+    "upper": [64, 64, 2, 8, 8, 4, 7, 1],
+    "constraints": [
+      {"expression": "TBX", "condition": "AllowedSet", "values": [8, 16, 32, 64]},
+      {"expression": "TBY", "condition": "AllowedSet", "values": [8, 16, 32, 64]},
+      {"expression": "LOCAL", "condition": "AllowedSet", "values": [0, 1, 2]},
+      {"expression": "WPTX", "condition": "AllowedSet", "values": [1, 2, 4, 8]},
+      {"expression": "WPTY", "condition": "AllowedSet", "values": [1, 2, 4, 8]},
+      {"expression": "VECTOR", "condition": "AllowedSet", "values": [1, 2, 4]},
+      {"expression": "UNROLL_FACTOR", "condition": "AllowedSet", "values": [1, 7]},
+      {"expression": "PADDING", "condition": "AllowedSet", "values": [0, 1]},
+      {"expression": "TBX * TBY", "condition": "LessEqual", "values": [1024]},
+      {"expression": "WPTX - VECTOR", "condition": "GreaterEqual", "values": [0]},
+      {"expression": "PADDING - LOCAL", "condition": "LessEqual", "values": [0]}
+    ],
+    "single": [{"expression": "achieved_occupancy", "sense": "Maximize"}],
+    "bi": []
+  }
+}

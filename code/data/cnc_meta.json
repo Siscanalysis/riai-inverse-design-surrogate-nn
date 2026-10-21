@@ -1,0 +1,36 @@
+{
+  "inputs": [
+    "cutting_speed",
+    "feed",
+    "depth_of_cut",
+    "tool_wear_VB"
+  ],
+  "targets": [
+    "Ra",
+    "F"
+  ],
+  "rows": 612,
+  "groups": 47,
+  "group_note": "recipe (vc, f, ap, VB): replicated measurements",
+  "roles": {
+    "Training": 444,
+    "Validation": 84,
+    "Testing": 84
+  },
+  "minimums": {
+    "cutting_speed": 310.0,
+    "feed": 0.07,
+    "depth_of_cut": 0.25,
+    "tool_wear_VB": 0.0,
+    "Ra": 0.142,
+    "F": 69.33787637
+  },
+  "maximums": {
+    "cutting_speed": 390.0,
+    "feed": 0.13,
+    "depth_of_cut": 0.8,
+    "tool_wear_VB": 0.3,
+    "Ra": 1.812,
+    "F": 384.2596778
+  }
+}

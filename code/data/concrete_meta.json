@@ -1,0 +1,51 @@
+{
+  "inputs": [
+    "Cement_kg_m3",
+    "FineAgg_kg_m3",
+    "CoarseAgg_kg_m3",
+    "Water_kg_m3",
+    "WaterReducer_kg_m3",
+    "FlyAsh_kg_m3",
+    "Accelerator_kg_m3",
+    "SilicaFume_kg_m3",
+    "TestAge_days"
+  ],
+  "targets": [
+    "CompressiveStrength_MPa",
+    "Slump_mm"
+  ],
+  "rows": 1395,
+  "groups": 623,
+  "group_note": "mix design (one mix tested at 7 and 28 days)",
+  "roles": {
+    "Training": 966,
+    "Validation": 223,
+    "Testing": 206
+  },
+  "minimums": {
+    "Cement_kg_m3": 194.0,
+    "FineAgg_kg_m3": 631.0,
+    "CoarseAgg_kg_m3": 0.0,
+    "Water_kg_m3": 110.0,
+    "WaterReducer_kg_m3": 0.0,
+    "FlyAsh_kg_m3": 0.0,
+    "Accelerator_kg_m3": 0.0,
+    "SilicaFume_kg_m3": 0.0,
+    "TestAge_days": 7.0,
+    "CompressiveStrength_MPa": 4.3,
+    "Slump_mm": 50.0
+  },
+  "maximums": {
+    "Cement_kg_m3": 958.0,
+    "FineAgg_kg_m3": 1638.0,
+    "CoarseAgg_kg_m3": 1398.0,
+    "Water_kg_m3": 394.0,
+    "WaterReducer_kg_m3": 39.2,
+    "FlyAsh_kg_m3": 195.0,
+    "Accelerator_kg_m3": 50.0,
+    "SilicaFume_kg_m3": 25.0,
+    "TestAge_days": 28.0,
+    "CompressiveStrength_MPa": 76.3,
+    "Slump_mm": 230.0
+  }
+}

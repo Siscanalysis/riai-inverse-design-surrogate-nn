@@ -1,0 +1,191 @@
+{
+  "Network": {
+    "Task": "Approximation",
+    "TrainingActivationRecomputation": false,
+    "Inputs": {
+      "InputsNumber": 10,
+      "Input": [
+        {
+          "Index": 1,
+          "Text": "Al",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "Co",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 3,
+          "Text": "Cr",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 4,
+          "Text": "Cu",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 5,
+          "Text": "Fe",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 6,
+          "Text": "Mn",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 7,
+          "Text": "Mo",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 8,
+          "Text": "Ni",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 9,
+          "Text": "Ti",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 10,
+          "Text": "V",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    },
+    "Layers": {
+      "LayersNumber": 5,
+      "Items": [
+        {
+          "Scaling": {
+            "Label": "scaling_layer",
+            "InputDimensions": "10 ",
+            "OutputDimensions": "10 ",
+            "Trainable": false,
+            "Means": "0.164294153 0.148471087 0.180152923 0.0799432918 0.185143083 0.0208501536 0.00973339379 0.168955445 0.0269725174 0.0154836914 ",
+            "StandardDeviations": "0.138675243 0.0884688422 0.0686580539 0.0869986489 0.083832249 0.0640332475 0.038690798 0.0894178003 0.0666066483 0.0526996963 ",
+            "Minimums": "0 0 0 0 0 0 0 0 0 0 ",
+            "Maximums": "0.469999999 0.428570986 0.349999994 0.332666993 0.57099998 0.400000006 0.25 0.5 0.332666993 0.332666993 ",
+            "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation",
+            "MinRange": -1,
+            "MaxRange": 1
+          }
+        },
+        {
+          "Dense": {
+            "Label": "dense_layer_1",
+            "InputDimensions": "10 ",
+            "OutputDimensions": "16 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Tanh",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Dense": {
+            "Label": "approximation_layer",
+            "InputDimensions": "16 ",
+            "OutputDimensions": "1 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Identity",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Unscaling": {
+            "Label": "unscaling_layer",
+            "InputDimensions": "1 ",
+            "OutputDimensions": "1 ",
+            "Trainable": false,
+            "MinRange": -1,
+            "MaxRange": 1,
+            "Neurons": [
+              {
+                "Descriptives": "109 920.2000122 490.4120789 226.4383545",
+                "Scaler": "MeanStandardDeviation"
+              }
+            ]
+          }
+        },
+        {
+          "Clamping": {
+            "Label": "clamping_layer",
+            "InputDimensions": "1 ",
+            "OutputDimensions": "1 ",
+            "Trainable": false,
+            "LowerBounds": "109 ",
+            "UpperBounds": "920.200012 ",
+            "ClampingMethod": "Clamping"
+          }
+        }
+      ],
+      "SourceLayers": {
+        "SourceLayer": [
+          {
+            "LayerIndex": 0,
+            "Text": "-1"
+          },
+          {
+            "LayerIndex": 1,
+            "Text": "0"
+          },
+          {
+            "LayerIndex": 2,
+            "Text": "1"
+          },
+          {
+            "LayerIndex": 3,
+            "Text": "2"
+          },
+          {
+            "LayerIndex": 4,
+            "Text": "3"
+          }
+        ]
+      },
+      "TiedWeights": []
+    },
+    "Outputs": {
+      "OutputsNumber": 1,
+      "Output": [
+        {
+          "Index": 1,
+          "Text": "HV",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    }
+  }
+}

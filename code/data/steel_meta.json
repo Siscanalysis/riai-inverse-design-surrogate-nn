@@ -1,0 +1,72 @@
+{
+  "inputs": [
+    "C",
+    "Si",
+    "Mn",
+    "P",
+    "S",
+    "Ni",
+    "Cr",
+    "Mo",
+    "Cu",
+    "V",
+    "Al",
+    "N",
+    "Nb_Ta",
+    "temperature_C"
+  ],
+  "targets": [
+    "proof_stress_MPa",
+    "tensile_strength_MPa",
+    "elongation_pct",
+    "reduction_area_pct"
+  ],
+  "rows": 915,
+  "groups": 95,
+  "group_note": "alloy (tested at several temperatures)",
+  "roles": {
+    "Training": 635,
+    "Validation": 135,
+    "Testing": 145
+  },
+  "minimums": {
+    "C": 0.09,
+    "Si": 0.18,
+    "Mn": 0.42,
+    "P": 0.006,
+    "S": 0.003,
+    "Ni": 0.0,
+    "Cr": 0.0,
+    "Mo": 0.005,
+    "Cu": 0.0,
+    "V": 0.0,
+    "Al": 0.002,
+    "N": 0.0025,
+    "Nb_Ta": 0.0,
+    "temperature_C": 27.0,
+    "proof_stress_MPa": 27.0,
+    "tensile_strength_MPa": 162.0,
+    "elongation_pct": 10.0,
+    "reduction_area_pct": 18.0
+  },
+  "maximums": {
+    "C": 0.34,
+    "Si": 0.52,
+    "Mn": 1.48,
+    "P": 0.03,
+    "S": 0.022,
+    "Ni": 0.6,
+    "Cr": 1.31,
+    "Mo": 1.35,
+    "Cu": 0.25,
+    "V": 0.3,
+    "Al": 0.05,
+    "N": 0.015,
+    "Nb_Ta": 0.0017,
+    "temperature_C": 650.0,
+    "proof_stress_MPa": 690.0,
+    "tensile_strength_MPa": 830.0,
+    "elongation_pct": 78.0,
+    "reduction_area_pct": 94.0
+  }
+}

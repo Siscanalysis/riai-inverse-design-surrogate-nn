@@ -1,0 +1,76 @@
+--- a/opennn/network/network.cpp
++++ b/opennn/network/network.cpp
+@@ -5,6 +5,7 @@
+ #include "opennn/network/network_internal.h"
+ 
+ #include <algorithm>
++#include <atomic>
+ #include <cmath>
+ #include <utility>
+ 
+@@ -781,6 +782,9 @@
+     return outputs;
+ }
+ 
++// RAI experiment instrument (measurement only): counts inference rows.
++std::atomic<long long> rai_forward_rows{0};
++
+ MatrixR Network::calculate_outputs(const vector<TensorView>& input_views)
+ {
+     if (layers.empty() || input_views.empty()) return {};
+@@ -789,6 +793,8 @@
+ 
+     const Index batch_size = input_views[0].get_shape()[0];
+ 
++    rai_forward_rows += batch_size;
++
+     if (is_gpu())
+     {
+         ForwardPropagation forward_propagation(batch_size, this,
+--- a/opennn/response_optimization/feasibility_repair_system.cpp
++++ b/opennn/response_optimization/feasibility_repair_system.cpp
+@@ -3,6 +3,9 @@
+ 
+ #include "opennn/response_optimization/feasibility_repair_system.h"
+ 
++#include <atomic>
++#include <cstdlib>
++
+ #include <Eigen/QR>
+ #include <unsupported/Eigen/LevenbergMarquardt>
+ 
+@@ -341,8 +344,20 @@
+ }
+ 
+ 
++// RAI experiment instruments (measurement only): count analytical-Jacobian work, which does
++// not pass through Network::calculate_outputs and so is invisible to rai_forward_rows. A call
++// walks the layers once recomputing the values and once more per network output chaining the
++// derivatives, so it is charged 1 + outputs layer sweeps, the same unit as one inference row.
++// RAI_FORCE_NUMERICAL_JACOBIAN=1 disables the analytical path, leaving the finite-difference
++// fallback of the pinned version: the two arms then differ only in how the Jacobian is formed.
++std::atomic<long long> rai_jacobian_calls{0};
++std::atomic<long long> rai_jacobian_sweeps{0};
++
++static const bool rai_force_numerical_jacobian = std::getenv("RAI_FORCE_NUMERICAL_JACOBIAN") != nullptr;
++
+ MatrixR FeasibilityRepairSystem::calculate_network_jacobian(const VectorR& point, const VectorR& output) const
+ {
++    if (rai_force_numerical_jacobian) return {};
+     if (!is_sequential_cpu_network(*network)) return {};
+     const auto& layers = network->get_layers();
+     vector<VectorR> derivatives(layers.size());
+@@ -385,7 +400,12 @@
+         jacobian.array().rowwise() *= derivatives[i].transpose().array();
+         if (combinations[i]) jacobian = (jacobian*combinations[i]->weights.as_matrix().transpose()).eval();
+     }
+-    return jacobian.allFinite() ? jacobian : MatrixR{};
++    if (!jacobian.allFinite()) return {};
++
++    rai_jacobian_calls += 1;
++    rai_jacobian_sweeps += 1 + output.size();
++
++    return jacobian;
+ }
+ 
+ 

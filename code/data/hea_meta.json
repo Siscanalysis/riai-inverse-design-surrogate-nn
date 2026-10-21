@@ -1,0 +1,51 @@
+{
+  "inputs": [
+    "Al",
+    "Co",
+    "Cr",
+    "Cu",
+    "Fe",
+    "Mn",
+    "Mo",
+    "Ni",
+    "Ti",
+    "V"
+  ],
+  "targets": [
+    "HV"
+  ],
+  "rows": 370,
+  "groups": 370,
+  "group_note": "composition (repeated alloys)",
+  "roles": {
+    "Training": 259,
+    "Validation": 56,
+    "Testing": 55
+  },
+  "minimums": {
+    "Al": 0.0,
+    "Co": 0.0,
+    "Cr": 0.0,
+    "Cu": 0.0,
+    "Fe": 0.0,
+    "Mn": 0.0,
+    "Mo": 0.0,
+    "Ni": 0.0,
+    "Ti": 0.0,
+    "V": 0.0,
+    "HV": 109.0
+  },
+  "maximums": {
+    "Al": 0.47,
+    "Co": 0.428571,
+    "Cr": 0.35,
+    "Cu": 0.332667,
+    "Fe": 0.571,
+    "Mn": 0.4,
+    "Mo": 0.25,
+    "Ni": 0.5,
+    "Ti": 0.332667,
+    "V": 0.332667,
+    "HV": 920.2
+  }
+}

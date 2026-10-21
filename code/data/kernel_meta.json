@@ -1,0 +1,48 @@
+{
+  "inputs": [
+    "TBX",
+    "TBY",
+    "LOCAL",
+    "WPTX",
+    "WPTY",
+    "VECTOR",
+    "UNROLL_FACTOR",
+    "PADDING"
+  ],
+  "targets": [
+    "log10_duration",
+    "achieved_occupancy"
+  ],
+  "rows": 3311,
+  "groups": 3311,
+  "group_note": "configuration (each measured once; the split is therefore by row)",
+  "roles": {
+    "Training": 2318,
+    "Validation": 497,
+    "Testing": 496
+  },
+  "minimums": {
+    "TBX": 8.0,
+    "TBY": 8.0,
+    "LOCAL": 0.0,
+    "WPTX": 1.0,
+    "WPTY": 1.0,
+    "VECTOR": 1.0,
+    "UNROLL_FACTOR": 1.0,
+    "PADDING": 0.0,
+    "log10_duration": 2.9703468762300935,
+    "achieved_occupancy": 0.0759979
+  },
+  "maximums": {
+    "TBX": 64.0,
+    "TBY": 64.0,
+    "LOCAL": 2.0,
+    "WPTX": 8.0,
+    "WPTY": 8.0,
+    "VECTOR": 4.0,
+    "UNROLL_FACTOR": 7.0,
+    "PADDING": 1.0,
+    "log10_duration": 4.801787750135018,
+    "achieved_occupancy": 0.98711
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "Network": {
+    "Task": "Approximation",
+    "TrainingActivationRecomputation": false,
+    "Inputs": {
+      "InputsNumber": 4,
+      "Input": [
+        {
+          "Index": 1,
+          "Text": "cutting_speed",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "feed",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 3,
+          "Text": "depth_of_cut",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 4,
+          "Text": "tool_wear_VB",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    },
+    "Layers": {
+      "LayersNumber": 5,
+      "Items": [
+        {
+          "Scaling": {
+            "Label": "scaling_layer",
+            "InputDimensions": "4 ",
+            "OutputDimensions": "4 ",
+            "Trainable": false,
+            "Means": "347.83783 0.0983783752 0.455405414 0.0540540554 ",
+            "StandardDeviations": "22.702528 0.0240218285 0.201164931 0.103031948 ",
+            "Minimums": "310 0.0700000003 0.25 0 ",
+            "Maximums": "390 0.129999995 0.800000012 0.300000012 ",
+            "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation",
+            "MinRange": -1,
+            "MaxRange": 1
+          }
+        },
+        {
+          "Dense": {
+            "Label": "dense_layer_1",
+            "InputDimensions": "4 ",
+            "OutputDimensions": "4 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Tanh",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Dense": {
+            "Label": "approximation_layer",
+            "InputDimensions": "4 ",
+            "OutputDimensions": "2 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Identity",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Unscaling": {
+            "Label": "unscaling_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "MinRange": -1,
+            "MaxRange": 1,
+            "Neurons": [
+              {
+                "Descriptives": "0.1420000046 1.812000036 0.7007522583 0.3177354038",
+                "Scaler": "MeanStandardDeviation"
+              },
+              {
+                "Descriptives": "69.33789825 384.2600098 187.4463806 93.18291473",
+                "Scaler": "MeanStandardDeviation"
+              }
+            ]
+          }
+        },
+        {
+          "Clamping": {
+            "Label": "clamping_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "LowerBounds": "0.142000005 69.3378983 ",
+            "UpperBounds": "1.81200004 384.26001 ",
+            "ClampingMethod": "Clamping"
+          }
+        }
+      ],
+      "SourceLayers": {
+        "SourceLayer": [
+          {
+            "LayerIndex": 0,
+            "Text": "-1"
+          },
+          {
+            "LayerIndex": 1,
+            "Text": "0"
+          },
+          {
+            "LayerIndex": 2,
+            "Text": "1"
+          },
+          {
+            "LayerIndex": 3,
+            "Text": "2"
+          },
+          {
+            "LayerIndex": 4,
+            "Text": "3"
+          }
+        ]
+      },
+      "TiedWeights": []
+    },
+    "Outputs": {
+      "OutputsNumber": 2,
+      "Output": [
+        {
+          "Index": 1,
+          "Text": "Ra",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "F",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    }
+  }
+}

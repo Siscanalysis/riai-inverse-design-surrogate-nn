@@ -1,0 +1,195 @@
+{
+  "Network": {
+    "Task": "Approximation",
+    "TrainingActivationRecomputation": false,
+    "Inputs": {
+      "InputsNumber": 9,
+      "Input": [
+        {
+          "Index": 1,
+          "Text": "Cement_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "FineAgg_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 3,
+          "Text": "CoarseAgg_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 4,
+          "Text": "Water_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 5,
+          "Text": "WaterReducer_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 6,
+          "Text": "FlyAsh_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 7,
+          "Text": "Accelerator_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 8,
+          "Text": "SilicaFume_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 9,
+          "Text": "TestAge_days",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    },
+    "Layers": {
+      "LayersNumber": 5,
+      "Items": [
+        {
+          "Scaling": {
+            "Label": "scaling_layer",
+            "InputDimensions": "9 ",
+            "OutputDimensions": "9 ",
+            "Trainable": false,
+            "Means": "361.206665 856.828186 968.882996 176.628357 5.50336027 25.9651337 0.885372698 0.236024842 17.695652 ",
+            "StandardDeviations": "99.1530075 180.267975 270.139801 36.9272308 4.60994816 36.1782494 5.53315115 2.13972688 10.5036154 ",
+            "Minimums": "194 631 0 110 0 0 0 0 7 ",
+            "Maximums": "958 1638 1398 394 39.2000008 195 50 25 28 ",
+            "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation",
+            "MinRange": -1,
+            "MaxRange": 1
+          }
+        },
+        {
+          "Dense": {
+            "Label": "dense_layer_1",
+            "InputDimensions": "9 ",
+            "OutputDimensions": "32 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Tanh",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Dense": {
+            "Label": "approximation_layer",
+            "InputDimensions": "32 ",
+            "OutputDimensions": "2 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Identity",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Unscaling": {
+            "Label": "unscaling_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "MinRange": -1,
+            "MaxRange": 1,
+            "Neurons": [
+              {
+                "Descriptives": "6.266670227 76.30000305 38.26176834 12.52991581",
+                "Scaler": "MeanStandardDeviation"
+              },
+              {
+                "Descriptives": "50 230 178.5 36.27813339",
+                "Scaler": "MeanStandardDeviation"
+              }
+            ]
+          }
+        },
+        {
+          "Clamping": {
+            "Label": "clamping_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "LowerBounds": "4.30000019 50 ",
+            "UpperBounds": "76.3000031 230 ",
+            "ClampingMethod": "Clamping"
+          }
+        }
+      ],
+      "SourceLayers": {
+        "SourceLayer": [
+          {
+            "LayerIndex": 0,
+            "Text": "-1"
+          },
+          {
+            "LayerIndex": 1,
+            "Text": "0"
+          },
+          {
+            "LayerIndex": 2,
+            "Text": "1"
+          },
+          {
+            "LayerIndex": 3,
+            "Text": "2"
+          },
+          {
+            "LayerIndex": 4,
+            "Text": "3"
+          }
+        ]
+      },
+      "TiedWeights": []
+    },
+    "Outputs": {
+      "OutputsNumber": 2,
+      "Output": [
+        {
+          "Index": 1,
+          "Text": "CompressiveStrength_MPa",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "Slump_mm",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    }
+  }
+}

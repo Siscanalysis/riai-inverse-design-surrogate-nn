@@ -1,0 +1,12 @@
+case,mode,solver,formulation,task,seed,starts,rows,forwards,seconds,status
+concrete,solve,dc,constraint,bi,1,2000,100,296477,5.679,ok
+concrete,solve,ga,constraint,bi,1,2000,100,163737,3.261,ok
+steel,solve,dc,constraint,bi,1,2000,9,2254161,44.230,ok
+steel,solve,ga,constraint,bi,1,2000,1,765111,14.950,ok
+concrete,solve,ga,constraint,single,1,2000,1,152409,2.950,ok
+hea,solve,ga,constraint,single,1,2000,1,547257,10.972,ok
+steel,solve,ga,constraint,single,1,2000,1,700765,13.506,ok
+steel,solve,ga,constraint,bi,7,2000,51,758312,15.138,ok
+steel,solve,ga,constraint,bi,7,2000,45,792177,15.730,ok
+steel,solve,ga,constraint,bi,7,2000,42,764685,14.822,ok
+hea,solve,ga,constraint,bi,7,2000,1,610772,12.717,ok

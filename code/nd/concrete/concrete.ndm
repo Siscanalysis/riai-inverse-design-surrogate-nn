@@ -1,0 +1,420 @@
+{
+  "ModelType": "Approximation",
+  "Description": "RAI inverse design study, concrete surrogate",
+  "DescriptionId": "BPh71Y",
+  "Dataset": {
+    "DataSource": {
+      "FileType": "csv",
+      "Path": "C:/Users/Artelnics/Desktop/experiments/Papers/RAI/new/code/nd/concrete/concrete.csv",
+      "Separator": "Comma",
+      "HasHeader": true,
+      "HasSamplesId": false,
+      "MissingValuesLabel": "NA",
+      "DecimalSeparator": "Auto",
+      "ThousandsSeparator": "Auto",
+      "Codification": "UTF-8",
+      "StorageMode": "Matrix",
+      "LagsNumber": 0,
+      "StepsAhead": 1,
+      "MultiTarget": false
+    },
+    "Variables": {
+      "VariablesNumber": 11,
+      "Variable": [
+        {
+          "Name": "Cement_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "FineAgg_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "CoarseAgg_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "Water_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "WaterReducer_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "FlyAsh_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "Accelerator_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "SilicaFume_kg_m3",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "TestAge_days",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Input",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "CompressiveStrength_MPa",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Target",
+          "Type": "Numeric"
+        },
+        {
+          "Name": "Slump_mm",
+          "Scaler": "MeanStandardDeviation",
+          "Role": "Target",
+          "Type": "Numeric"
+        }
+      ]
+    },
+    "Samples": {
+      "SamplesNumber": 1395,
+      "SampleRoles": "0 2 0 0 2 1 2 2 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 2 0 0 0 0 0 0 0 0 0 2 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 2 2 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 2 0 2 0 1 0 0 0 0 0 2 0 0 0 0 0 0 0 2 0 0 0 0 2 0 0 1 1 0 0 0 0 1 0 1 2 1 0 2 0 0 0 1 2 0 0 1 1 1 0 0 1 0 1 0 0 0 0 1 2 2 0 0 1 0 1 0 0 0 0 0 0 2 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 2 2 0 2 1 0 1 2 0 0 0 2 0 0 0 2 0 0 1 0 2 1 2 0 0 0 0 0 2 0 2 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 2 1 0 0 0 0 1 1 0 0 2 0 0 0 0 0 0 2 0 0 0 0 2 0 0 2 0 2 0 0 0 1 0 1 0 2 0 0 0 0 0 0 2 2 0 0 2 0 0 2 0 0 0 0 2 0 0 2 0 0 0 2 1 0 0 0 1 0 0 2 2 0 0 0 0 0 0 2 0 0 1 0 0 0 0 0 0 0 0 0 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 1 2 2 0 0 1 2 1 0 2 0 0 1 2 0 2 0 0 2 1 2 2 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 2 0 0 0 0 0 0 0 0 0 2 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 2 0 2 2 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 2 0 2 0 1 0 0 0 0 0 2 0 0 0 0 0 0 2 0 0 1 1 0 0 0 1 0 0 0 0 1 0 1 2 1 0 2 0 0 0 1 2 0 0 1 1 1 0 0 1 0 1 0 0 0 0 1 2 2 0 0 1 0 1 0 0 0 0 0 2 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 2 2 0 2 1 0 1 2 0 0 0 2 0 0 0 2 0 0 1 0 2 1 2 0 0 0 0 0 2 0 2 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 2 1 0 0 0 0 1 1 0 0 2 0 0 0 0 0 0 2 0 0 0 0 2 0 0 2 0 2 0 0 0 1 0 1 0 2 0 0 0 0 0 1 2 2 0 1 0 2 0 0 0 0 2 0 0 0 0 2 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 2 2 0 0 2 0 0 2 0 0 0 0 2 0 0 2 0 0 0 2 1 2 1 0 0 0 1 0 0 2 2 0 0 0 0 0 0 2 0 0 1 0 0 0 0 0 0 0 0 0 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 1 2 2 0 0 1 2 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 2 2 0 0 0 1 1 2 0 1 0 1 1 0 2 0 0 1 0 0 0 0 2 0 0 2 2 0 0 1 0 0 0 0 0 2 2 0 0 2 1 2 1 0 2 0 0 0 0 0 0 0 0 2 0 0 0 2 0 0 2 0 0 0 0 1 0 1 1 2 0 0 0 0 0 0 0 0 2 0 0 2 0 0 0 0 0 0 2 1 0 2 1 1 0 0 0 1 0 2 0 0 1 0 0 0 0 0 2 0 0 0 2 2 0 1 1 0 0 1 0 1 0 0 0 2 2 0 1 1 2 1 0 0 0 0 2 0 0 1 0 0 0 0 0 2 0 1 0 0 0 2 1 1 0 0 1 1 1 1 0 0 1 0 0 0 0 1 1 1 1 0 0 1 0 0 0 1 1 1 1 0 0 1 1 0 0 1 0 2 0 0 2 2 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 2 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 2 2 0 2 0 0 1 1 0 0 0 0 0 0 0 2 0 0 2 0 1 0 1 0 0 0 2 1 2 0 0 0 2 1 0 1 0 1 0 1 0 0 2 0 1 1 1 0 0 2 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 2 2 0 0 0 1 1 2 0 1 0 1 1 0 2 0 0 1 0 0 0 0 2 0 0 2 2 0 0 1 0 0 0 0 0 2 2 0 0 2 1 2 1 0 2 0 0 0 0 0 0 0 0 2 0 0 0 2 0 0 2 0 0 0 0 1 0 1 1 2 0 0 0 0 0 0 0 0 2 0 0 2 0 0 0 0 0 0 2 1 0 2 1 1 0 0 0 1 0 2 0 0 1 0 0 0 0 0 2 0 0 0 2 2 0 1 1 0 0 1 0 1 0 0 0 2 2 0 1 1 2 1 0 0 0 0 2 0 0 1 0 0 0 0 0 0 0 2 0 1 0 0 0 0 1 1 0 0 1 1 1 1 0 0 1 0 0 0 0 1 1 1 1 0 0 1 0 0 0 1 1 1 1 0 0 1 1 0 0 1 0 2 0 0 2 2 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 2 2 0 2 0 0 1 1 0 0 0 0 0 0 0 2 0 0 2 0 1 0 1 0 0 0 2 1 2 0 0 0 2 1 0 1 0 1 0 1"
+    },
+    "MissingValues": {
+      "MissingValuesNumber": 0
+    },
+    "PreviewData": {
+      "PreviewSize": 4,
+      "Row": [
+        {
+          "Text": "Cement_kg_m3,FineAgg_kg_m3,CoarseAgg_kg_m3,Water_kg_m3,WaterReducer_kg_m3,FlyAsh_kg_m3,Accelerator_kg_m3,SilicaFume_kg_m3,TestAge_days,CompressiveStrength_MPa,Slump_mm",
+          "Cells": [
+            "Cement_kg_m3",
+            "FineAgg_kg_m3",
+            "CoarseAgg_kg_m3",
+            "Water_kg_m3",
+            "WaterReducer_kg_m3",
+            "FlyAsh_kg_m3",
+            "Accelerator_kg_m3",
+            "SilicaFume_kg_m3",
+            "TestAge_days",
+            "CompressiveStrength_MPa",
+            "Slump_mm"
+          ]
+        },
+        {
+          "Text": "380,832,1017,171,6.84,0,0,0,7,36.2,210",
+          "Cells": [
+            "380",
+            "832",
+            "1017",
+            "171",
+            "6.84",
+            "0",
+            "0",
+            "0",
+            "7",
+            "36.2",
+            "210"
+          ]
+        },
+        {
+          "Text": "338,824,1007,171,7.16,60,0,0,7,36.4,205",
+          "Cells": [
+            "338",
+            "824",
+            "1007",
+            "171",
+            "7.16",
+            "60",
+            "0",
+            "0",
+            "7",
+            "36.4",
+            "205"
+          ]
+        },
+        {
+          "Text": "284,819,1085,162,3.41,0,0,0,28,28.9,165",
+          "Cells": [
+            "284",
+            "819",
+            "1085",
+            "162",
+            "3.41",
+            "0",
+            "0",
+            "0",
+            "28",
+            "28.9",
+            "165"
+          ]
+        }
+      ]
+    },
+    "Display": true
+  },
+  "Network": {
+    "Task": "Approximation",
+    "TrainingActivationRecomputation": false,
+    "Inputs": {
+      "InputsNumber": 9,
+      "Input": [
+        {
+          "Index": 1,
+          "Text": "Cement_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "FineAgg_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 3,
+          "Text": "CoarseAgg_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 4,
+          "Text": "Water_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 5,
+          "Text": "WaterReducer_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 6,
+          "Text": "FlyAsh_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 7,
+          "Text": "Accelerator_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 8,
+          "Text": "SilicaFume_kg_m3",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 9,
+          "Text": "TestAge_days",
+          "Role": "Input",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    },
+    "Layers": {
+      "LayersNumber": 5,
+      "Items": [
+        {
+          "Scaling": {
+            "Label": "scaling_layer",
+            "InputDimensions": "9 ",
+            "OutputDimensions": "9 ",
+            "Trainable": false,
+            "Means": "361.206665 856.828186 968.882996 176.628357 5.50336027 25.9651337 0.885372698 0.236024842 17.695652 ",
+            "StandardDeviations": "99.1530075 180.267975 270.139801 36.9272308 4.60994816 36.1782494 5.53315115 2.13972688 10.5036154 ",
+            "Minimums": "194 631 0 143 0 0 0 0 7 ",
+            "Maximums": "958 1638 1398 394 39.2000008 195 50 25 28 ",
+            "Scalers": "MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation MeanStandardDeviation",
+            "MinRange": -1,
+            "MaxRange": 1
+          }
+        },
+        {
+          "Dense": {
+            "Label": "dense_layer_1",
+            "InputDimensions": "9 ",
+            "OutputDimensions": "12 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Tanh",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Dense": {
+            "Label": "approximation_layer",
+            "InputDimensions": "12 ",
+            "OutputDimensions": "2 ",
+            "Trainable": true,
+            "BatchNormalization": false,
+            "UseBias": true,
+            "Activation": "Identity",
+            "Gated": false,
+            "TransposedInference": false
+          }
+        },
+        {
+          "Unscaling": {
+            "Label": "unscaling_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "MinRange": -1,
+            "MaxRange": 1,
+            "Neurons": [
+              {
+                "Descriptives": "6.266670227 76.30000305 38.26176834 12.52991581",
+                "Scaler": "MeanStandardDeviation"
+              },
+              {
+                "Descriptives": "50 230 178.5 36.27813339",
+                "Scaler": "MeanStandardDeviation"
+              }
+            ]
+          }
+        },
+        {
+          "Clamping": {
+            "Label": "clamping_layer",
+            "InputDimensions": "2 ",
+            "OutputDimensions": "2 ",
+            "Trainable": false,
+            "ClampingMethod": "NoClamping"
+          }
+        }
+      ],
+      "SourceLayers": {
+        "SourceLayer": [
+          {
+            "LayerIndex": 0,
+            "Text": "-1"
+          },
+          {
+            "LayerIndex": 1,
+            "Text": "0"
+          },
+          {
+            "LayerIndex": 2,
+            "Text": "1"
+          },
+          {
+            "LayerIndex": 3,
+            "Text": "2"
+          },
+          {
+            "LayerIndex": 4,
+            "Text": "3"
+          }
+        ]
+      },
+      "TiedWeights": []
+    },
+    "Outputs": {
+      "OutputsNumber": 2,
+      "Output": [
+        {
+          "Index": 1,
+          "Text": "CompressiveStrength_MPa",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        },
+        {
+          "Index": 2,
+          "Text": "Slump_mm",
+          "Role": "Target",
+          "Type": "Numeric",
+          "Scaler": "MeanStandardDeviation"
+        }
+      ]
+    }
+  },
+  "Training": {
+    "Loss": {
+      "Error": "MeanSquaredError",
+      "MeanSquaredError": {
+        "Method": "MeanSquaredError",
+        "Regularization": "L2",
+        "RegularizationWeight": 0.0010000000474974513
+      },
+      "Regularization": {
+        "Type": "L2",
+        "RegularizationWeight": 0.0010000000474974513
+      }
+    },
+    "Optimizer": {
+      "OptimizationMethod": "QuasiNewton",
+      "QuasiNewton": {
+        "MinimumLossDecrease": 0,
+        "LossGoal": 0,
+        "MaximumValidationFailures": 500,
+        "MaximumEpochsNumber": 5000,
+        "MaximumTime": 3600,
+        "GradientClipNorm": 0,
+        "JointGradientArena": false,
+        "DisplayPeriod": 100
+      }
+    },
+    "Display": true
+  },
+  "ModelSelection": {
+    "NeuronSelection": {
+      "NeuronsSelectionMethod": "GrowingNeurons",
+      "GrowingNeurons": {
+        "MinimumNeurons": 1,
+        "MaximumNeurons": 32,
+        "NeuronsIncrement": 1,
+        "TrialsNumber": 5,
+        "WarmStart": true,
+        "ValidationErrorGoal": 0,
+        "MaximumValidationFailures": 100,
+        "MaximumEpochsNumber": 1000,
+        "MaximumTime": 3600,
+        "FoldsNumber": 1
+      }
+    },
+    "InputSelection": {
+      "InputSelectionMethod": "GrowingInputs",
+      "GrowingInputs": {
+        "TrialsNumber": 3,
+        "WarmStart": true,
+        "ValidationErrorGoal": 0,
+        "MaximumValidationFailures": 100,
+        "MinimumInputsNumber": 1,
+        "MaximumInputsNumber": 9,
+        "MaximumEpochsNumber": 1000,
+        "MaximumTime": 3600,
+        "FoldsNumber": 1
+      }
+    }
+  }
+}

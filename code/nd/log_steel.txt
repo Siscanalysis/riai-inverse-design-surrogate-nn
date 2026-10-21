@@ -1,0 +1,6 @@
+steel     Import data                  rc=0     0.2 s  Neural Engine finished. |  | [LOAD PARAMS] WARNING: size mismatch. file=2552 expected=56. Initializing parameters.
+steel     pinned grouped split         {0: 635, 1: 135, 2: 145}
+steel     Perform neuron selection     rc=0   260.1 s  Removing tasks file... | Output file removed. | Neural Engine finished.
+steel     Perform training             rc=0     2.4 s  Neural Engine finished. |  | Warning: Configuration::set() was called after this network was compiled, so it has no effect on it. The network keeps the settings resolved at compile() time; call Configuration::set() before constructing the network.
+steel     Perform goodness-of-fit analysis rc=0     0.2 s  Removing tasks file... | Output file removed. | Neural Engine finished.
+steel     Calculate errors             rc=0     0.1 s  Removing tasks file... | Output file removed. | Neural Engine finished.

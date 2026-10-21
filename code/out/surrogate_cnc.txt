@@ -1,0 +1,4 @@
+case cnc: 4 inputs -> 2 targets; grid 4,8,16; seeds 1-2
+selected: 4 hidden neurons, seed 1 (mean validation R2 0.5886)
+retrained R2 train/validation/test: 0.4337;0.8872 | 0.2820;0.8953 | -0.1553;0.6519
+after full-range box + clamp, R2 train/validation/test: 0.4337;0.8882 | 0.2820;0.8986 | -0.1553;0.6519
